@@ -128,7 +128,6 @@ void ASBPlayer::Fire(const FInputActionValue& Value)
 	{
 		if (EquippedWeaponType == EEquippedWeapon::EEW_Rifle && RifleFireMontage)
 		{
-			SCREEN_LOG_NONE_KEY("Fire");
 			AnimInstance->Montage_Play(RifleFireMontage);
 		}
 	}
