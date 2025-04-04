@@ -9,6 +9,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "SB/DebugMacro.h"
+#include "Items/Weapon.h"
 
 ASBPlayer::ASBPlayer()
 {
@@ -55,15 +56,19 @@ void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (EnhancedInputComponent)
 	{
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ASBPlayer::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ASBPlayer::StopJumping);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASBPlayer::Move);
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASBPlayer::Look);
-		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Started, this, &ASBPlayer::Zoom);
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ASBPlayer::Fire);
-		EnhancedInputComponent->BindAction(ChangeWeapon1Action, ETriggerEvent::Started, this, &ASBPlayer::ChangeWeapon1);
-		EnhancedInputComponent->BindAction(ChangeWeapon2Action, ETriggerEvent::Started, this, &ASBPlayer::ChangeWeapon2);
-		EnhancedInputComponent->BindAction(UnarmAction, ETriggerEvent::Started, this, &ASBPlayer::Unarm);
+		EnhancedInputComponent->BindAction(JumpInputAction, ETriggerEvent::Started, this, &ASBPlayer::Jump);
+		EnhancedInputComponent->BindAction(JumpInputAction, ETriggerEvent::Completed, this, &ASBPlayer::StopJumping);
+		EnhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::Move);
+		EnhancedInputComponent->BindAction(LookInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::Look);
+		EnhancedInputComponent->BindAction(ZoomInputAction, ETriggerEvent::Started, this, &ASBPlayer::Zoom);
+		EnhancedInputComponent->BindAction(UseWeaponInputAction, ETriggerEvent::Started, this, &ASBPlayer::UseWeaponStarted);
+		EnhancedInputComponent->BindAction(UseWeaponInputAction, ETriggerEvent::Ongoing, this, &ASBPlayer::UseWeaponOngoing);
+		EnhancedInputComponent->BindAction(UseWeaponInputAction, ETriggerEvent::Completed, this, &ASBPlayer::UseWeaponCompleted);
+		EnhancedInputComponent->BindAction(UseWeaponSpecific1InputAction, ETriggerEvent::Started, this, &ASBPlayer::UseWeaponSpecific1);
+		EnhancedInputComponent->BindAction(UseWeaponSpecific2InputAction, ETriggerEvent::Started, this, &ASBPlayer::UseWeaponSpecific2);
+		EnhancedInputComponent->BindAction(ChangeWeapon1InputAction, ETriggerEvent::Started, this, &ASBPlayer::ChangeWeapon1);
+		EnhancedInputComponent->BindAction(ChangeWeapon2InputAction, ETriggerEvent::Started, this, &ASBPlayer::ChangeWeapon2);
+		EnhancedInputComponent->BindAction(UnarmInputAction, ETriggerEvent::Started, this, &ASBPlayer::Unarm);
 	}
 }
 
@@ -82,6 +87,37 @@ void ASBPlayer::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+}
+
+void ASBPlayer::PlayFireMontage()
+{
+	if (EquippedWeaponType == EEquippedWeapon::EEW_Rifle)
+	{
+		PlayMontage(RifleFireMontage);
+	}
+}
+
+void ASBPlayer::PlayReloadMontage()
+{
+	if (EquippedWeaponType == EEquippedWeapon::EEW_Rifle)
+	{
+		PlayMontage(RifleReloadMontage);
+	}
+}
+
+FTransform ASBPlayer::GetLHIKTransform() const
+{
+	FTransform LHIKTransform;
+	if (CurrentWeapon != nullptr)
+	{
+		FTransform Transform = CurrentWeapon->GetSkeletalMeshComponent()->GetSocketTransform(FName("LHIK"));
+		FVector Location;
+		FRotator Rotator;
+		GetMesh()->TransformToBoneSpace("hand_r", Transform.GetLocation(), Transform.GetRotation().Rotator(), Location, Rotator);
+		LHIKTransform.SetLocation(Location);
+		LHIKTransform.SetRotation(Rotator.Quaternion());
+	}
+	return LHIKTransform;
 }
 
 void ASBPlayer::Move(const FInputActionValue& Value)
@@ -120,59 +156,125 @@ void ASBPlayer::Look(const FInputActionValue& Value)
 	}
 }
 
-void ASBPlayer::Fire(const FInputActionValue& Value)
+void ASBPlayer::UseWeaponStarted()
 {
-	if (ZoomState != ECharacterZoomState::ECZS_Zooming) return;
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance)
+	if (CurrentWeapon) 
 	{
-		if (EquippedWeaponType == EEquippedWeapon::EEW_Rifle && RifleFireMontage)
-		{
-			AnimInstance->Montage_Play(RifleFireMontage);
-		}
+		CurrentWeapon->UseStart();
 	}
 }
 
-void ASBPlayer::Zoom(const FInputActionValue& Value)
+void ASBPlayer::UseWeaponOngoing()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->UseOngoing();
+	}
+}
+
+void ASBPlayer::UseWeaponCompleted()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->UseStop();
+	}
+}
+
+void ASBPlayer::UseWeaponSpecific1()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->SpecificUse1();
+	}
+}
+
+void ASBPlayer::UseWeaponSpecific2()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->SpecificUse2();
+	}
+}
+
+void ASBPlayer::Zoom()
 {
 	if (EquippedWeaponType == EEquippedWeapon::EEW_Unarmed)
 	{
-		ZoomState = ECharacterZoomState::ECZS_NoZoom;
-		MovementSpeedScale = JogScale;
+		ZoomOut();
 	}
 	else
 	{
 		if (ZoomState == ECharacterZoomState::ECZS_Zooming)
 		{
-			ZoomState = ECharacterZoomState::ECZS_NoZoom;
-			MovementSpeedScale = JogScale;
+			ZoomOut();
+			
 		}
 		else if (ZoomState == ECharacterZoomState::ECZS_NoZoom)
 		{
-			ZoomState = ECharacterZoomState::ECZS_Zooming;
-			MovementSpeedScale = WalkScale;
+			ZoomIn();
 		}
 		else
 		{
 			SCREEN_LOG_NONE_KEY("Undefined ZoomState: ASBPlayer::Zoom");
 		}
 	}
+	
 }
 
-void ASBPlayer::ChangeWeapon1(const FInputActionValue& Value)
+void ASBPlayer::ChangeWeapon1()
 {
-	SCREEN_LOG(0, "ChangeWeapon1");
-	EquippedWeaponType = EEquippedWeapon::EEW_Rifle;
+	EquipWeapon();
 }
 
-void ASBPlayer::ChangeWeapon2(const FInputActionValue& Value)
+void ASBPlayer::ChangeWeapon2()
 {
-	SCREEN_LOG(0, "ChangeWeapon2");
-	EquippedWeaponType = EEquippedWeapon::EEW_Rifle;
+	EquipWeapon();
 }
 
-void ASBPlayer::Unarm(const FInputActionValue& Value)
+void ASBPlayer::Unarm()
 {
-	SCREEN_LOG(0, "Unarm");
 	EquippedWeaponType = EEquippedWeapon::EEW_Unarmed;
+	CurrentWeapon = nullptr;
+	ZoomOut();
+}
+
+void ASBPlayer::PlayMontage(UAnimMontage* Montage)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && Montage)
+	{
+		AnimInstance->Montage_Play(Montage);
+	}
+}
+
+void ASBPlayer::EquipWeapon()
+{
+	EquippedWeaponType = EEquippedWeapon::EEW_Rifle;
+
+	UWorld* World = GetWorld();
+	if (CurrentWeapon == nullptr) 
+	{
+		FActorSpawnParameters ActorSpawnParameters;
+		ActorSpawnParameters.Owner = this;
+		CurrentWeapon = World->SpawnActor<AWeapon>(RifleClass, ActorSpawnParameters);
+	}
+
+	if (CurrentWeapon)
+	{
+		FAttachmentTransformRules AttachmentTransformRules(EAttachmentRule::SnapToTarget, true);
+		CurrentWeapon->GetSkeletalMeshComponent()->AttachToComponent(GetMesh(), AttachmentTransformRules, RightHandSocketName);
+		PlayMontage(RifleEquipMontage);
+	}
+}
+
+void ASBPlayer::ZoomIn()
+{
+	ZoomState = ECharacterZoomState::ECZS_Zooming;
+	MovementSpeedScale = WalkScale;
+}
+
+void ASBPlayer::ZoomOut()
+{
+	ZoomState = ECharacterZoomState::ECZS_NoZoom;
+	MovementSpeedScale = JogScale;
 }

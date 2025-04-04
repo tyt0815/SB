@@ -11,6 +11,7 @@ class UInputMappingContext;
 class UInputAction;
 class USpringArmComponent;
 class UCameraComponent;
+class AWeapon;
 struct FInputActionValue;
 
 /**
@@ -29,6 +30,13 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	void PlayMontage(UAnimMontage* Montage);
+	void PlayFireMontage();
+	void PlayReloadMontage();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FTransform GetLHIKTransform() const;
+
 	UPROPERTY(BlueprintReadOnly, Category = States)
 	ECharacterZoomState ZoomState;
 
@@ -42,51 +50,83 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	UCameraComponent* FollowCamera;
 
+	UPROPERTY(BlueprintReadOnly, Category = Weapon)
+	AWeapon* CurrentWeapon = nullptr;
+
 private:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-	void Fire(const FInputActionValue& Value);
-	void Zoom(const FInputActionValue& Value);
-	void ChangeWeapon1(const FInputActionValue& Value);
-	void ChangeWeapon2(const FInputActionValue& Value);
-	void Unarm(const FInputActionValue& Value);
+	void UseWeaponStarted();
+	void UseWeaponOngoing();
+	void UseWeaponCompleted();
+	void UseWeaponSpecific1();
+	void UseWeaponSpecific2();
+	void Zoom();
+	void ChangeWeapon1();
+	void ChangeWeapon2();
+	void Unarm();
+	void EquipWeapon();
+	void ZoomIn();
+	void ZoomOut();
 
+	/*
+	* Enhanced Input
+	*/
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
 	UInputMappingContext* DefaultMappingContext;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* JumpAction;
+	UInputAction* JumpInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* LookAction;
+	UInputAction* LookInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* MoveAction;
+	UInputAction* MoveInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* FireAction;
+	UInputAction* UseWeaponInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* ZoomAction;
+	UInputAction* UseWeaponSpecific1InputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* ChangeWeapon1Action;
+	UInputAction* UseWeaponSpecific2InputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* ChangeWeapon2Action;
+	UInputAction* ZoomInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* UnarmAction;
+	UInputAction* ChangeWeapon1InputAction;
 
+	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UInputAction* ChangeWeapon2InputAction;
+
+	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UInputAction* UnarmInputAction;
+
+	/*
+	* Montages
+	*/
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	UAnimMontage* RifleFireMontage;
 
+	UPROPERTY(EditDefaultsOnly, Category = Montages)
+	UAnimMontage* RifleEquipMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = Montages)
+	UAnimMontage* RifleReloadMontage;
+
+	/*
+	* SubClasses	
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = Weapon)
+	TSubclassOf<AWeapon> RifleClass;
+
+	FName RightHandSocketName = "hand_r_Socket";
 	float JogScale = 1.0f;
 	float WalkScale = 0.5f;
 	float MovementSpeedScale;
-
-private:
-	
 
 public:
 };
