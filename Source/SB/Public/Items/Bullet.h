@@ -55,7 +55,6 @@ protected:
 	TArray<AActor*> HitActors;
 private:
 	void EvaluateHitActors();
-	
 	FVector CalculateHitTraceStartLocation();
 	FVector CalculateHitTraceEndLocation();
 	FVector CalculateHitTraceHalfSize();

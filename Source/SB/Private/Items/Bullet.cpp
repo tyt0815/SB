@@ -36,10 +36,6 @@ void ABullet::Tick(float Delta)
 	{
 		EvaluateHitActors();
 	}
-	for (auto Actor : HitActors)
-	{
-		SCREEN_LOG_SINGLE_FRAME(Actor->GetName());
-	}
 	Location_LastFrame = GetActorLocation();
 }
 
@@ -84,7 +80,7 @@ void ABullet::EvaluateHitActors()
 			UEngineTypes::ConvertToTraceType(ECC_Visibility),
 			false,
 			ActorsToIgnore,
-			EDrawDebugTrace::ForOneFrame,
+			EDrawDebugTrace::None,
 			HitResults,
 			true
 		);
@@ -101,7 +97,7 @@ void ABullet::EvaluateHitActors()
 			UEngineTypes::ConvertToTraceType(ECC_Visibility),
 			false,
 			ActorsToIgnore,
-			EDrawDebugTrace::ForOneFrame,
+			EDrawDebugTrace::None,
 			HitResults[0],
 			true
 		);
@@ -138,7 +134,7 @@ FVector ABullet::CalculateHitTraceStartLocation()
 	FVector Offset = Location_LastFrame;
 	FVector ComponentForward = BoxComponent->GetForwardVector();
 	float HalfWidth = BoxComponent->GetScaledBoxExtent().X;
-	return Offset - ComponentForward * HalfWidth;
+	return Offset + ComponentForward * HalfWidth;
 }
 
 FVector ABullet::CalculateHitTraceEndLocation()

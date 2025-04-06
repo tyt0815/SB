@@ -145,10 +145,12 @@ FTransform AGun::CalcBulletSpawnTransform()
 		ActorsToIgnore.Add(this);
 		ActorsToIgnore.Add(Player);
 		FHitResult HitResult;
-		UKismetSystemLibrary::LineTraceSingle(
+		UKismetSystemLibrary::BoxTraceSingle(
 			this,
 			TraceStart,
 			TraceEnd,
+			FVector(10.0f, 10.0f, 10.0f),
+			CameraRotation,
 			ETraceTypeQuery::TraceTypeQuery1,
 			false,
 			ActorsToIgnore,
