@@ -9,9 +9,11 @@
 ABullet::ABullet()
 {
 	BoxCollisionComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
+	BoxCollisionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetRootComponent(BoxCollisionComponent);
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	MeshComponent->SetupAttachment(BoxCollisionComponent);
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovementComponent->SetUpdatedComponent(BoxCollisionComponent);
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Items/Item.h"
+#include "Items/ItemType.h"
 #include "Weapon.generated.h"
 
 class UBoxComponent;
@@ -24,14 +25,19 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UBoxComponent* BoxCollisionComponent;
+	USkeletalMeshComponent* Mesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USkeletalMeshComponent* SkeletalMeshComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	EWeaponType WeaponType;
 
 public:
-	FORCEINLINE USkeletalMeshComponent* GetSkeletalMeshComponent() const
+	FORCEINLINE USkeletalMeshComponent* GetMesh() const
 	{
-		return SkeletalMeshComponent;
+		return Mesh;
+	}
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE EWeaponType GetWeaponType() const
+	{
+		return WeaponType;
 	}
 };

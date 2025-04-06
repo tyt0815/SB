@@ -15,15 +15,16 @@ enum class ECharacterMovementState : uint8
 };
 
 UENUM(BlueprintType)
-enum class EEquippedWeapon : uint8
-{
-	EEW_Unarmed UMETA(DisplayName = "Unarmed"),
-	EEW_Rifle UMETA(DisplayName = "Rifle")
-};
-
-UENUM(BlueprintType)
 enum class ECharacterZoomState : uint8
 {
 	ECZS_NoZoom UMETA(DisplayName = "NoZoom"),
 	ECZS_Zooming UMETA(DisplayName = "Zooming")
+};
+
+UENUM(BlueprintType)
+enum class EUpperBodyState : uint8
+{
+	EUBS_Idle UMETA(DisplayName = "Idle"),
+	EUBS_Reloading UMETA(DisplayName = "Reloading"),
+	EUBS_Equipping UMETA(DisplayName = "Equipping")
 };

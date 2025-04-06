@@ -22,6 +22,7 @@ class SB_API AGun : public AWeapon, public IGunAnimNotify
 	
 public:
 	AGun();
+	virtual void Tick(float Delta) override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -33,7 +34,8 @@ public:
 	virtual void SpecificUse1() override;
 	// Change Fire Mode
 	virtual void SpecificUse2() override;
-	virtual void OnReloadEnd_Implementation() override;
+	virtual void OnReloadEndNotify_Implementation() override;
+	bool CanReload() const;
 
 	void Test(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
 
@@ -72,6 +74,7 @@ private:
 	void StartFireCooldownTimer(float CoolDownTime);
 	void Fire();
 	void Reload();
+	FTransform CalcBulletSpawnTransform();
 	bool CanFire();
 
 	UFUNCTION()
@@ -83,4 +86,5 @@ private:
 	int32 AmmoCount = 0;
 	int16 FireCount = 0;
 	bool bFireReady = true;
+	bool bReloading = false;
 };

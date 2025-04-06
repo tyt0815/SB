@@ -36,18 +36,23 @@ ASBPlayer::ASBPlayer()
 	// 스프링 암 컴포넌트 생성
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.f;
+	CameraBoom->SetRelativeLocation(FVector(0.0f, ZoomOutCameraLoaction.Y, ZoomOutCameraLoaction.Z));
+	CameraBoom->TargetArmLength = ZoomOutCameraLoaction.X;
 	CameraBoom->bUsePawnControlRotation = true; // 카메라가 컨트롤러에 의해 회전되도록	설정
 
 	// 카메라 컴포넌트 생성
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);	// 카메라가 스프링 암에 부착되도록 설정. USpringArmComponent::SocketName는 "SpringEndPoint"로 스프링 암 끝부분에 부착되도록 설정
 	FollowCamera->bUsePawnControlRotation = false;	// 카메라가 컨트롤러에 의해 회전되지 않도록 설정
+
+	// 배열 초기화
+	WeaponQuickslot.SetNum(2);
 }
 
 void ASBPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 }
 
 void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -66,9 +71,9 @@ void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(UseWeaponInputAction, ETriggerEvent::Completed, this, &ASBPlayer::UseWeaponCompleted);
 		EnhancedInputComponent->BindAction(UseWeaponSpecific1InputAction, ETriggerEvent::Started, this, &ASBPlayer::UseWeaponSpecific1);
 		EnhancedInputComponent->BindAction(UseWeaponSpecific2InputAction, ETriggerEvent::Started, this, &ASBPlayer::UseWeaponSpecific2);
-		EnhancedInputComponent->BindAction(ChangeWeapon1InputAction, ETriggerEvent::Started, this, &ASBPlayer::ChangeWeapon1);
-		EnhancedInputComponent->BindAction(ChangeWeapon2InputAction, ETriggerEvent::Started, this, &ASBPlayer::ChangeWeapon2);
-		EnhancedInputComponent->BindAction(UnarmInputAction, ETriggerEvent::Started, this, &ASBPlayer::Unarm);
+		EnhancedInputComponent->BindAction(SwitchWeapon0InputAction, ETriggerEvent::Started, this, &ASBPlayer::SwitchToWeapon0);
+		EnhancedInputComponent->BindAction(SwitchWeapon1InputAction, ETriggerEvent::Started, this, &ASBPlayer::SwitchToWeapon1);
+		EnhancedInputComponent->BindAction(SwitchToUnarmInputAction, ETriggerEvent::Started, this, &ASBPlayer::SwitchToUnarmedState);
 	}
 }
 
@@ -87,30 +92,108 @@ void ASBPlayer::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
-}
 
-void ASBPlayer::PlayFireMontage()
-{
-	if (EquippedWeaponType == EEquippedWeapon::EEW_Rifle)
+	// Spawn Weapon
+	UWorld* World = GetWorld();
+	FActorSpawnParameters WeaponSpawnParameters;
+	WeaponSpawnParameters.Owner = this;
+	if (WeaponClass0)
 	{
-		PlayMontage(RifleFireMontage);
+		StockWeaponInQuickSlot(
+			GetWorld()->SpawnActor<AWeapon>(WeaponClass0, WeaponSpawnParameters),
+			0
+		);
+	}
+	if (WeaponClass1)
+	{
+		StockWeaponInQuickSlot(
+			GetWorld()->SpawnActor<AWeapon>(WeaponClass1, WeaponSpawnParameters),
+			1
+		);
 	}
 }
 
-void ASBPlayer::PlayReloadMontage()
+void ASBPlayer::StockWeaponInQuickSlot(AWeapon* Weapon, uint32 Index)
 {
-	if (EquippedWeaponType == EEquippedWeapon::EEW_Rifle)
+	if (Weapon)
 	{
-		PlayMontage(RifleReloadMontage);
+		WeaponQuickslot[Index] = Weapon;
+		AttachWeapon(Weapon, RightHandSocketName);
+		SetWeaponVisibility(Weapon, false);
 	}
 }
 
+void ASBPlayer::PlayMontage(UAnimMontage* Montage)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && Montage)
+	{
+		AnimInstance->Montage_Play(Montage);
+	}
+}
+
+void ASBPlayer::PlayFireMontage(AWeapon* Weapon)
+{
+	if (Weapon)
+	{
+		EWeaponType WeaponType = Weapon->GetWeaponType();
+		UAnimMontage* Montage = WeaponMontages[WeaponType].FireMontage;
+		if (Montage)
+		{
+			
+			PlayMontage(Montage);
+		}
+	}
+	
+}
+
+void ASBPlayer::PlayReloadMontage(AWeapon* Weapon)
+{
+	if (Weapon)
+	{
+		EWeaponType WeaponType = Weapon->GetWeaponType();
+		UAnimMontage* Montage = WeaponMontages[WeaponType].ReloadMontage;
+		if (Montage)
+		{
+			PlayMontage(Montage);
+		}
+	}
+}
+
+void ASBPlayer::PlayEquipMontage(AWeapon* Weapon)
+{
+	if (Weapon)
+	{
+		EWeaponType WeaponType = Weapon->GetWeaponType();
+		UAnimMontage* Montage = WeaponMontages[WeaponType].EquipMontage;
+		if (Montage)
+		{
+			PlayMontage(Montage);
+		}
+	}
+}
+
+bool ASBPlayer::IsFireReady() const
+{
+	return !IsUnarmed() &&
+		ZoomState == ECharacterZoomState::ECZS_Zooming &&
+		GetUpperBodyState() == EUpperBodyState::EUBS_Idle
+		;
+}
+
+bool ASBPlayer::IsUnarmed() const
+{
+	return bUnArmed || GetCurrentWeapon() == nullptr;
+}
+
+// TODO: 이거 좀 바꾸긴 해야할 거 같음.
 FTransform ASBPlayer::GetLHIKTransform() const
 {
 	FTransform LHIKTransform;
-	if (CurrentWeapon != nullptr)
+	AWeapon* Weapon = GetCurrentWeapon();
+	if (Weapon != nullptr)
 	{
-		FTransform Transform = CurrentWeapon->GetSkeletalMeshComponent()->GetSocketTransform(FName("LHIK"));
+		FTransform Transform = Weapon->GetMesh()->GetSocketTransform(FName("LHIK"));
 		FVector Location;
 		FRotator Rotator;
 		GetMesh()->TransformToBoneSpace("hand_r", Transform.GetLocation(), Transform.GetRotation().Rotator(), Location, Rotator);
@@ -119,6 +202,48 @@ FTransform ASBPlayer::GetLHIKTransform() const
 	}
 	return LHIKTransform;
 }
+
+AWeapon* ASBPlayer::GetCurrentWeapon() const
+{
+	if (WeaponQuickslot.IsValidIndex(CurrentWeaponIndex))
+	{
+		return WeaponQuickslot[CurrentWeaponIndex];
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+EUpperBodyState ASBPlayer::GetUpperBodyState() const
+{
+	AWeapon* Weapon = GetCurrentWeapon();
+	if (IsPlayingEquipMontage(Weapon))
+	{
+		return EUpperBodyState::EUBS_Equipping;
+	}
+	else if (IsPlayingReloadMontage(Weapon))
+	{
+		return EUpperBodyState::EUBS_Reloading;
+	}
+	else
+	{
+		return EUpperBodyState::EUBS_Idle;
+	}
+}
+
+void ASBPlayer::ZoomIn_Implementation()
+{
+	ZoomState = ECharacterZoomState::ECZS_Zooming;
+	MovementSpeedScale = WalkScale;
+}
+
+void ASBPlayer::ZoomOut_Implementation()
+{
+	ZoomState = ECharacterZoomState::ECZS_NoZoom;
+	MovementSpeedScale = JogScale;
+}
+
 
 void ASBPlayer::Move(const FInputActionValue& Value)
 {
@@ -158,123 +283,172 @@ void ASBPlayer::Look(const FInputActionValue& Value)
 
 void ASBPlayer::UseWeaponStarted()
 {
-	if (CurrentWeapon) 
+	if (IsFireReady()) 
 	{
-		CurrentWeapon->UseStart();
+		GetCurrentWeapon()->UseStart();
 	}
 }
 
 void ASBPlayer::UseWeaponOngoing()
 {
-	if (CurrentWeapon)
+	if (IsFireReady())
 	{
-		CurrentWeapon->UseOngoing();
+		GetCurrentWeapon()->UseOngoing();
 	}
 }
 
 void ASBPlayer::UseWeaponCompleted()
 {
-	if (CurrentWeapon)
+	if (IsFireReady())
 	{
-		CurrentWeapon->UseStop();
+		GetCurrentWeapon()->UseStop();
 	}
 }
 
 void ASBPlayer::UseWeaponSpecific1()
 {
-	if (CurrentWeapon)
+	if (!IsUnarmed() && GetUpperBodyState() == EUpperBodyState::EUBS_Idle)
 	{
-		CurrentWeapon->SpecificUse1();
+		GetCurrentWeapon()->SpecificUse1();
 	}
 }
 
 void ASBPlayer::UseWeaponSpecific2()
 {
-	if (CurrentWeapon)
+	if (!IsUnarmed() && GetUpperBodyState() == EUpperBodyState::EUBS_Idle)
 	{
-		CurrentWeapon->SpecificUse2();
+		GetCurrentWeapon()->SpecificUse2();
 	}
 }
 
 void ASBPlayer::Zoom()
 {
-	if (EquippedWeaponType == EEquippedWeapon::EEW_Unarmed)
+	if (IsUnarmed() || ZoomState == ECharacterZoomState::ECZS_Zooming)
 	{
 		ZoomOut();
+			
+	}
+	else if (ZoomState == ECharacterZoomState::ECZS_NoZoom)
+	{
+		ZoomIn();
 	}
 	else
 	{
-		if (ZoomState == ECharacterZoomState::ECZS_Zooming)
-		{
-			ZoomOut();
-			
-		}
-		else if (ZoomState == ECharacterZoomState::ECZS_NoZoom)
-		{
-			ZoomIn();
-		}
-		else
-		{
-			SCREEN_LOG_NONE_KEY("Undefined ZoomState: ASBPlayer::Zoom");
-		}
+		SCREEN_LOG_NONE_KEY("Undefined ZoomState: ASBPlayer::Zoom");
 	}
-	
 }
 
-void ASBPlayer::ChangeWeapon1()
+void ASBPlayer::SwitchToWeapon0()
 {
-	EquipWeapon();
+	SwitchWeapon(0);
 }
 
-void ASBPlayer::ChangeWeapon2()
+void ASBPlayer::SwitchToWeapon1()
 {
-	EquipWeapon();
+	SwitchWeapon(1);
 }
 
-void ASBPlayer::Unarm()
+void ASBPlayer::SwitchToUnarmedState()
 {
-	EquippedWeaponType = EEquippedWeapon::EEW_Unarmed;
-	CurrentWeapon = nullptr;
+	UnequipWeapon();
 	ZoomOut();
 }
 
-void ASBPlayer::PlayMontage(UAnimMontage* Montage)
+void ASBPlayer::SwitchWeapon(uint32 Index)
+{
+	if (CurrentWeaponIndex != Index)
+	{
+		UnequipWeapon();
+		EquipWeapon(Index);
+		PlayEquipMontage(GetCurrentWeapon());
+	}
+}
+
+void ASBPlayer::EquipWeapon(uint32 Index)
+{
+	bUnArmed = false;
+	SetCurrentWeapon(Index);
+	SetWeaponVisibility(GetCurrentWeapon(), true);
+}
+
+void ASBPlayer::UnequipWeapon()
+{
+	bUnArmed = true;
+	CurrentWeaponIndex = 3;
+	SetWeaponVisibility(GetCurrentWeapon(), false);
+}
+
+void ASBPlayer::SetWeaponVisibility(AWeapon* Weapon, bool bVisibility)
+{
+	if (Weapon)
+	{
+		Weapon->GetMesh()->SetVisibility(bVisibility);
+	}
+}
+
+void ASBPlayer::SetCurrentWeapon(uint32 Index)
+{
+	if (WeaponQuickslot.IsValidIndex(Index))
+	{
+		CurrentWeaponIndex = Index;
+	}
+}
+
+void ASBPlayer::AttachWeapon(AWeapon* Weapon, FName SocketName)
+{
+	if (Weapon)
+	{
+		FAttachmentTransformRules AttachmentTransformRules(EAttachmentRule::SnapToTarget, true);
+		Weapon->GetMesh()->AttachToComponent(GetMesh(), AttachmentTransformRules, SocketName);
+	}
+}
+
+bool ASBPlayer::IsPlayingMontage(UAnimMontage* Montage) const
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && Montage)
 	{
-		AnimInstance->Montage_Play(Montage);
+		return AnimInstance->Montage_IsPlaying(Montage);
 	}
+	return false;
 }
 
-void ASBPlayer::EquipWeapon()
+bool ASBPlayer::IsPlayingFireMontage(AWeapon* Weapon) const
 {
-	EquippedWeaponType = EEquippedWeapon::EEW_Rifle;
-
-	UWorld* World = GetWorld();
-	if (CurrentWeapon == nullptr) 
+	if (Weapon)
 	{
-		FActorSpawnParameters ActorSpawnParameters;
-		ActorSpawnParameters.Owner = this;
-		CurrentWeapon = World->SpawnActor<AWeapon>(RifleClass, ActorSpawnParameters);
+		UAnimMontage* Montage = WeaponMontages[Weapon->GetWeaponType()].FireMontage;
+		return IsPlayingMontage(Montage);
 	}
+	return false;
+}
 
-	if (CurrentWeapon)
+bool ASBPlayer::IsPlayingEquipMontage(AWeapon* Weapon) const
+{
+	if (Weapon)
 	{
-		FAttachmentTransformRules AttachmentTransformRules(EAttachmentRule::SnapToTarget, true);
-		CurrentWeapon->GetSkeletalMeshComponent()->AttachToComponent(GetMesh(), AttachmentTransformRules, RightHandSocketName);
-		PlayMontage(RifleEquipMontage);
+		UAnimMontage* Montage = WeaponMontages[Weapon->GetWeaponType()].EquipMontage;
+		return IsPlayingMontage(Montage);
 	}
+	return false;
 }
 
-void ASBPlayer::ZoomIn()
+bool ASBPlayer::IsPlayingReloadMontage(AWeapon* Weapon) const
 {
-	ZoomState = ECharacterZoomState::ECZS_Zooming;
-	MovementSpeedScale = WalkScale;
+	if (Weapon)
+	{
+		UAnimMontage* Montage = WeaponMontages[Weapon->GetWeaponType()].ReloadMontage;
+		return IsPlayingMontage(Montage);
+	}
+	return false;
 }
 
-void ASBPlayer::ZoomOut()
+void ASBPlayer::OnReloadEndNotify_Implementation()
 {
-	ZoomState = ECharacterZoomState::ECZS_NoZoom;
-	MovementSpeedScale = JogScale;
+
+}
+
+void ASBPlayer::OnEquipEndNotify_Implementation()
+{
+
 }

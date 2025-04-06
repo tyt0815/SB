@@ -3,20 +3,23 @@
 
 #include "Items/Gun.h"
 #include "Items/Bullet.h"
+#include "Camera/CameraComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Characters/Player/SBPlayer.h"
 #include "SB/DebugMacro.h"
+# include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 
 AGun::AGun()
 {
-	UArrowComponent* ArrowComponent = CreateDefaultSubobject<UArrowComponent>("Arrow");
-	SetRootComponent(ArrowComponent);
-	SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMesh");
-	SkeletalMeshComponent->SetupAttachment(GetRootComponent());
-	BoxCollisionComponent = CreateDefaultSubobject<UBoxComponent>("BoxCollision");
-	BoxCollisionComponent->SetupAttachment(SkeletalMeshComponent);
+
+}
+
+void AGun::Tick(float Delta)
+{
+	Super::Tick(Delta);
 }
 
 void AGun::UseStart()
@@ -57,9 +60,15 @@ void AGun::SpecificUse2()
 	}
 }
 
-void AGun::OnReloadEnd_Implementation()
+void AGun::OnReloadEndNotify_Implementation()
 {
-	SCREEN_LOG_NONE_KEY("OnGunReloadEnd_Implementation");
+	AmmoCount = MaxAmmo;
+	bReloading = false;
+}
+
+bool AGun::CanReload() const
+{
+	return !bReloading && AmmoCount < MaxAmmo;
 }
 
 void AGun::Test(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
@@ -106,13 +115,56 @@ void AGun::Fire()
 
 void AGun::Reload()
 {
-	PlayMontage(ReloadMontage);
+	if (CanReload())
+	{
+		bReloading = true;
+		PlayMontage(ReloadMontage);
+		ASBPlayer* Player = Cast<ASBPlayer>(GetOwner());
+		if (Player)
+		{
+			Player->PlayReloadMontage(this);
+		}
+	}
+	
+}
+
+FTransform AGun::CalcBulletSpawnTransform()
+{
+	FTransform Transform;
+	Transform.SetLocation(GetMesh()->GetSocketLocation("Muzzle"));
+	Transform.SetRotation(GetMesh()->GetSocketRotation("Muzzle").Quaternion());
+	Transform.SetScale3D(FVector::OneVector);
 	ASBPlayer* Player = Cast<ASBPlayer>(GetOwner());
 	if (Player)
 	{
-		Player->PlayReloadMontage();
+		UCameraComponent* Camera = Player->GetCameraComponent();
+		const FVector TraceStart = Camera->GetComponentLocation(); 
+		const FRotator CameraRotation = Camera->GetComponentRotation();
+		const FVector TraceEnd = TraceStart + CameraRotation.Vector() * 10000.0f;
+		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.Add(this);
+		ActorsToIgnore.Add(Player);
+		FHitResult HitResult;
+		UKismetSystemLibrary::LineTraceSingle(
+			this,
+			TraceStart,
+			TraceEnd,
+			ETraceTypeQuery::TraceTypeQuery1,
+			false,
+			ActorsToIgnore,
+			EDrawDebugTrace::None,
+			HitResult,
+			true
+		);
+		FVector TargetLocation = TraceEnd;
+		if (HitResult.bBlockingHit)
+		{
+			TargetLocation = HitResult.ImpactPoint;
+		}
+		FRotator Rotator = UKismetMathLibrary::FindLookAtRotation(Transform.GetLocation(), TargetLocation);
+		Transform.SetRotation(Rotator.Quaternion());
 	}
-	AmmoCount = 30;
+	return Transform;
 }
 
 void AGun::BeginPlay()
@@ -120,17 +172,16 @@ void AGun::BeginPlay()
 	Super::BeginPlay();
 	AmmoCount = MaxAmmo;
 
-	UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance)
 	{
-		SCREEN_LOG_NONE_KEY("AnimInstance is not null");
 		AnimInstance->OnPlayMontageNotifyEnd.AddDynamic(this, &AGun::Test);
 	}
 }
 
 void AGun::PlayMontage(UAnimMontage* Montage)
 {
-	UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && Montage)
 	{
 		
@@ -140,10 +191,12 @@ void AGun::PlayMontage(UAnimMontage* Montage)
 
 void AGun::Fire_Internal()
 {
-	SCREEN_LOG_NONE_KEY("Fire_Internal");
-	FVector SpawnLocation = SkeletalMeshComponent->GetSocketLocation("Muzzle");
-	FRotator SpawnRotation = SkeletalMeshComponent->GetSocketRotation("Muzzle");
-	ABullet* Bullet = GetWorld()->SpawnActor<ABullet>(BulletClass, SpawnLocation, SpawnRotation);
+	FTransform Transform = CalcBulletSpawnTransform();
+	ABullet* Bullet = GetWorld()->SpawnActor<ABullet>(
+		BulletClass,
+		Transform.GetLocation(),
+		Transform.GetRotation().Rotator()
+	);
 	if (Bullet)
 	{
 		Bullet->SetBulletSpeed(BulletSpeed);
@@ -153,7 +206,7 @@ void AGun::Fire_Internal()
 		ASBPlayer* Player = Cast<ASBPlayer>(GetOwner());
 		if (Player)
 		{
-			Player->PlayFireMontage();
+			Player->PlayFireMontage(this);
 		}
 	}
 }

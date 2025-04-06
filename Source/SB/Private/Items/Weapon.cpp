@@ -3,3 +3,8 @@
 
 #include "Items/Weapon.h"
 
+AWeapon::AWeapon()
+{
+	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMesh");
+	Mesh->SetupAttachment(GetRootComponent());
+}

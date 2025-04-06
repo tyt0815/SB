@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
 #include "CharacterType.h"
+#include "Items/ItemType.h"
 #include "SBPlayerAnimInstance.generated.h"
 
 UENUM(BlueprintType)
@@ -56,10 +57,13 @@ protected:
 	ECharacterMovementState MovementState;
 
 	UPROPERTY(BlueprintReadWrite, Category = "States")
-	EEquippedWeapon EquippedWeapon;
+	ECharacterZoomState ZoomState;
 
 	UPROPERTY(BlueprintReadWrite, Category = "States")
-	ECharacterZoomState ZoomState;
+	EWeaponType CurrentWeaponType;
+
+	UPROPERTY(BlueprintReadWrite, Category = "States")
+	bool bUnarmed;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Aiming Data")
 	float AimPitch;
