@@ -34,7 +34,10 @@ public:
 	virtual void SpecificUse1() override;
 	// Change Fire Mode
 	virtual void SpecificUse2() override;
+
+	// GunAnimNotify Functions
 	virtual void OnReloadEndNotify_Implementation() override;
+
 	bool CanReload() const;
 
 	void Test(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
@@ -66,6 +69,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Gun")
 	int32 BurstNum = 3;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Gun")
+	float SpreadAngle = 2.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Gun")
 	EFireMode FireMode = EFireMode::EFM_SemiAuto;

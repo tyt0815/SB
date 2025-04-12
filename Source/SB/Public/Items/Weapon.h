@@ -23,6 +23,9 @@ public:
 	virtual void SpecificUse1() {};
 	virtual void SpecificUse2() {};
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
+	void SetMeshVisibleWithEffect(bool bVisible);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USkeletalMeshComponent* Mesh;
@@ -35,7 +38,6 @@ public:
 	{
 		return Mesh;
 	}
-	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE EWeaponType GetWeaponType() const
 	{
 		return WeaponType;

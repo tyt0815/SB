@@ -163,6 +163,18 @@ FTransform AGun::CalcBulletSpawnTransform()
 		{
 			TargetLocation = HitResult.ImpactPoint;
 		}
+
+		// 반동(총알 확산) 구현
+		FVector Offset = FVector(0.0f, FMath::FRand(), FMath::FRand());
+		Offset = CameraRotation.RotateVector(Offset);
+		Offset = UKismetMathLibrary::Normal(Offset);
+
+		float Radius = FMath::Tan(FMath::DegreesToRadians(SpreadAngle)) * (TargetLocation - Transform.GetLocation()).Length();
+		Offset *= Radius;
+		TargetLocation += Offset;
+		SCREEN_LOG(1, Offset.ToString());
+		SCREEN_LOG(2, TargetLocation.ToString());
+
 		FRotator Rotator = UKismetMathLibrary::FindLookAtRotation(Transform.GetLocation(), TargetLocation);
 		Transform.SetRotation(Rotator.Quaternion());
 	}

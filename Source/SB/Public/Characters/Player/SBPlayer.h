@@ -63,8 +63,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = States)
 	ECharacterZoomState ZoomState;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	EUpperBodyState GetUpperBodyState() const;
+	// GunAnimNotify Functions
+	virtual void OnReloadEndNotify_Implementation() override;
+	virtual void OnEquipEndNotify_Implementation() override;
 
 protected:
 	UFUNCTION(BlueprintNativeEvent)
@@ -113,21 +114,19 @@ private:
 	void SetWeaponVisibility(AWeapon* Weapon, bool bVisibility);
 	void SetCurrentWeapon(uint32 Index);
 	void AttachWeapon(AWeapon* Weapon, FName SocketName);
+	void DettachWeapon(AWeapon* Weapon);
+	void ReloadEnd();
+	void EquipEnd();
 	bool IsPlayingMontage(UAnimMontage* Montage) const;
 	bool IsPlayingFireMontage(AWeapon* Weapon) const;
 	bool IsPlayingEquipMontage(AWeapon* Weapon) const;
 	bool IsPlayingReloadMontage(AWeapon* Weapon) const;
-	virtual void OnReloadEndNotify_Implementation() override;
-	virtual void OnEquipEndNotify_Implementation() override;
 
 	/*
 	* Enhanced Input
 	*/
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
 	UInputMappingContext* DefaultMappingContext;
-
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* JumpInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
 	UInputAction* LookInputAction;
@@ -172,10 +171,17 @@ private:
 	float MovementSpeedScale;
 	uint16 CurrentWeaponIndex = 3;
 	bool bUnArmed = true;
+	EUpperBodyState UpperBodyState = EUpperBodyState::EUBS_Idle;
 
 public:
 	FORCEINLINE UCameraComponent* GetCameraComponent() const
 	{
 		return FollowCamera;
+	}
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE EUpperBodyState GetUpperBodyState() const
+	{
+		return UpperBodyState;
 	}
 };

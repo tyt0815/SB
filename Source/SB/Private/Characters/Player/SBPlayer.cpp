@@ -10,6 +10,7 @@
 #include "InputActionValue.h"
 #include "SB/DebugMacro.h"
 #include "Items/Weapon.h"
+#include "Engine/SkeletalMeshSocket.h"
 
 ASBPlayer::ASBPlayer()
 {
@@ -61,8 +62,6 @@ void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (EnhancedInputComponent)
 	{
-		EnhancedInputComponent->BindAction(JumpInputAction, ETriggerEvent::Started, this, &ASBPlayer::Jump);
-		EnhancedInputComponent->BindAction(JumpInputAction, ETriggerEvent::Completed, this, &ASBPlayer::StopJumping);
 		EnhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::Move);
 		EnhancedInputComponent->BindAction(LookInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::Look);
 		EnhancedInputComponent->BindAction(ZoomInputAction, ETriggerEvent::Started, this, &ASBPlayer::Zoom);
@@ -118,7 +117,6 @@ void ASBPlayer::StockWeaponInQuickSlot(AWeapon* Weapon, uint32 Index)
 	if (Weapon)
 	{
 		WeaponQuickslot[Index] = Weapon;
-		AttachWeapon(Weapon, RightHandSocketName);
 		SetWeaponVisibility(Weapon, false);
 	}
 }
@@ -155,6 +153,7 @@ void ASBPlayer::PlayReloadMontage(AWeapon* Weapon)
 		UAnimMontage* Montage = WeaponMontages[WeaponType].ReloadMontage;
 		if (Montage)
 		{
+			UpperBodyState = EUpperBodyState::EUBS_Reloading;
 			PlayMontage(Montage);
 		}
 	}
@@ -168,6 +167,7 @@ void ASBPlayer::PlayEquipMontage(AWeapon* Weapon)
 		UAnimMontage* Montage = WeaponMontages[WeaponType].EquipMontage;
 		if (Montage)
 		{
+			UpperBodyState = EUpperBodyState::EUBS_Equipping;
 			PlayMontage(Montage);
 		}
 	}
@@ -215,21 +215,14 @@ AWeapon* ASBPlayer::GetCurrentWeapon() const
 	}
 }
 
-EUpperBodyState ASBPlayer::GetUpperBodyState() const
+void ASBPlayer::OnReloadEndNotify_Implementation()
 {
-	AWeapon* Weapon = GetCurrentWeapon();
-	if (IsPlayingEquipMontage(Weapon))
-	{
-		return EUpperBodyState::EUBS_Equipping;
-	}
-	else if (IsPlayingReloadMontage(Weapon))
-	{
-		return EUpperBodyState::EUBS_Reloading;
-	}
-	else
-	{
-		return EUpperBodyState::EUBS_Idle;
-	}
+	ReloadEnd();
+}
+
+void ASBPlayer::OnEquipEndNotify_Implementation()
+{
+	EquipEnd();
 }
 
 void ASBPlayer::ZoomIn_Implementation()
@@ -368,21 +361,23 @@ void ASBPlayer::EquipWeapon(uint32 Index)
 {
 	bUnArmed = false;
 	SetCurrentWeapon(Index);
+	AttachWeapon(GetCurrentWeapon(), RightHandSocketName);
 	SetWeaponVisibility(GetCurrentWeapon(), true);
 }
 
 void ASBPlayer::UnequipWeapon()
 {
 	bUnArmed = true;
-	CurrentWeaponIndex = 3;
+	DettachWeapon(GetCurrentWeapon());
 	SetWeaponVisibility(GetCurrentWeapon(), false);
+	CurrentWeaponIndex = 3;
 }
 
 void ASBPlayer::SetWeaponVisibility(AWeapon* Weapon, bool bVisibility)
 {
 	if (Weapon)
 	{
-		Weapon->GetMesh()->SetVisibility(bVisibility);
+		Weapon->SetMeshVisibleWithEffect(bVisibility);
 	}
 }
 
@@ -401,6 +396,24 @@ void ASBPlayer::AttachWeapon(AWeapon* Weapon, FName SocketName)
 		FAttachmentTransformRules AttachmentTransformRules(EAttachmentRule::SnapToTarget, true);
 		Weapon->GetMesh()->AttachToComponent(GetMesh(), AttachmentTransformRules, SocketName);
 	}
+}
+
+void ASBPlayer::DettachWeapon(AWeapon* Weapon)
+{
+	if (Weapon)
+	{
+		Weapon->GetMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	}
+}
+
+void ASBPlayer::ReloadEnd()
+{
+	UpperBodyState = EUpperBodyState::EUBS_Idle;
+}
+
+void ASBPlayer::EquipEnd()
+{
+	UpperBodyState = EUpperBodyState::EUBS_Idle;
 }
 
 bool ASBPlayer::IsPlayingMontage(UAnimMontage* Montage) const
@@ -441,14 +454,4 @@ bool ASBPlayer::IsPlayingReloadMontage(AWeapon* Weapon) const
 		return IsPlayingMontage(Montage);
 	}
 	return false;
-}
-
-void ASBPlayer::OnReloadEndNotify_Implementation()
-{
-
-}
-
-void ASBPlayer::OnEquipEndNotify_Implementation()
-{
-
 }
