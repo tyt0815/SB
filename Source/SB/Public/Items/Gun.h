@@ -27,7 +27,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 public:
-	void PlayMontage(UAnimMontage* Montage);
 	virtual void UseStart() override;
 	virtual void UseOngoing() override;
 	// Reload
@@ -39,6 +38,7 @@ public:
 	virtual void OnReloadEndNotify_Implementation() override;
 
 	bool CanReload() const;
+	bool IsReloading() const;
 
 	void Test(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
 
@@ -92,5 +92,4 @@ private:
 	int32 AmmoCount = 0;
 	int16 FireCount = 0;
 	bool bFireReady = true;
-	bool bReloading = false;
 };

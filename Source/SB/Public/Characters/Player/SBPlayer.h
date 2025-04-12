@@ -14,6 +14,7 @@ class UInputAction;
 class USpringArmComponent;
 class UCameraComponent;
 class AWeapon;
+class ABuildCameraPawn;
 struct FInputActionValue;
 
 USTRUCT(BlueprintType)
@@ -46,10 +47,15 @@ protected:
 public:
 	void StockWeaponInQuickSlot(AWeapon* Weapon, uint32 Index);
 	void PlayMontage(UAnimMontage* Montage);
+	void StopMontage();
 	void PlayFireMontage(AWeapon* Weapon);
 	void PlayReloadMontage(AWeapon* Weapon);
 	void PlayEquipMontage(AWeapon* Weapon);
 	bool IsFireReady() const;
+
+	UFUNCTION(BlueprintNativeEvent, Category = "BuildSystem")
+	void OnPlayerPossessStarted();
+	virtual void OnPlayerPossessStarted_Implementation();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool IsUnarmed() const;
@@ -94,6 +100,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	TSubclassOf<AWeapon> WeaponClass1;
 
+	UPROPERTY(EditAnywhere, Category = BuildSystem)
+	TSubclassOf<ABuildCameraPawn> BuildCameraPawnClass;
+
 	TArray<AWeapon*> WeaponQuickslot;
 
 private:
@@ -111,16 +120,19 @@ private:
 	void SwitchWeapon(uint32 Index);
 	void EquipWeapon(uint32 Index);
 	void UnequipWeapon();
-	void SetWeaponVisibility(AWeapon* Weapon, bool bVisibility);
+	void SetWeaponVisibility(AWeapon* Weapon, bool bVisibility, bool bEffect);
 	void SetCurrentWeapon(uint32 Index);
 	void AttachWeapon(AWeapon* Weapon, FName SocketName);
 	void DettachWeapon(AWeapon* Weapon);
 	void ReloadEnd();
 	void EquipEnd();
+	void ToggleToBuildModeStarted();
 	bool IsPlayingMontage(UAnimMontage* Montage) const;
 	bool IsPlayingFireMontage(AWeapon* Weapon) const;
 	bool IsPlayingEquipMontage(AWeapon* Weapon) const;
 	bool IsPlayingReloadMontage(AWeapon* Weapon) const;
+	void SetInputMappingContext();
+	void RemoveInputMappingContext();
 
 	/*
 	* Enhanced Input
@@ -155,6 +167,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
 	UInputAction* SwitchToUnarmInputAction;
 
+	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UInputAction* ToggleToBuildModeInputAction;
+
 	/*
 	* Montages
 	*/
@@ -165,9 +180,10 @@ private:
 	* etc
 	*/
 	
+	ABuildCameraPawn* BuildCameraPawn;
 	FName RightHandSocketName = "hand_r_Socket";
 	float JogScale = 1.0f;
-	float WalkScale = 0.5f;
+	float WalkScale = 0.4f;
 	float MovementSpeedScale;
 	uint16 CurrentWeaponIndex = 3;
 	bool bUnArmed = true;

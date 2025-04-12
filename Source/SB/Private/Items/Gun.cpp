@@ -63,12 +63,21 @@ void AGun::SpecificUse2()
 void AGun::OnReloadEndNotify_Implementation()
 {
 	AmmoCount = MaxAmmo;
-	bReloading = false;
 }
 
 bool AGun::CanReload() const
 {
-	return !bReloading && AmmoCount < MaxAmmo;
+	return !IsReloading() && AmmoCount < MaxAmmo;
+}
+
+bool AGun::IsReloading() const
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ReloadMontage)
+	{
+		return AnimInstance->Montage_IsPlaying(ReloadMontage);
+	}
+	return false;
 }
 
 void AGun::Test(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
@@ -117,7 +126,6 @@ void AGun::Reload()
 {
 	if (CanReload())
 	{
-		bReloading = true;
 		PlayMontage(ReloadMontage);
 		ASBPlayer* Player = Cast<ASBPlayer>(GetOwner());
 		if (Player)
@@ -182,16 +190,6 @@ void AGun::BeginPlay()
 	if (AnimInstance)
 	{
 		AnimInstance->OnPlayMontageNotifyEnd.AddDynamic(this, &AGun::Test);
-	}
-}
-
-void AGun::PlayMontage(UAnimMontage* Montage)
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && Montage)
-	{
-		
-		AnimInstance->Montage_Play(Montage);
 	}
 }
 

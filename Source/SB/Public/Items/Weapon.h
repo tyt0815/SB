@@ -17,6 +17,8 @@ public:
 	AWeapon();
 
 public:
+	void PlayMontage(UAnimMontage* Montage);
+	void StopMontage();
 	virtual void UseStart() {};
 	virtual void UseOngoing() {};
 	virtual void UseStop() {};

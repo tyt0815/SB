@@ -1,16 +1,15 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Characters/Player/SBPlayer.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/SpringArmComponent.h"
+
+#include "BuildSystem/BuildCameraPawn.h"
 #include "Camera/CameraComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "InputActionValue.h"
-#include "SB/DebugMacro.h"
 #include "Items/Weapon.h"
-#include "Engine/SkeletalMeshSocket.h"
+#include "SB/DebugMacro.h"
 
 ASBPlayer::ASBPlayer()
 {
@@ -73,6 +72,7 @@ void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(SwitchWeapon0InputAction, ETriggerEvent::Started, this, &ASBPlayer::SwitchToWeapon0);
 		EnhancedInputComponent->BindAction(SwitchWeapon1InputAction, ETriggerEvent::Started, this, &ASBPlayer::SwitchToWeapon1);
 		EnhancedInputComponent->BindAction(SwitchToUnarmInputAction, ETriggerEvent::Started, this, &ASBPlayer::SwitchToUnarmedState);
+		EnhancedInputComponent->BindAction(ToggleToBuildModeInputAction, ETriggerEvent::Started, this, &ASBPlayer::ToggleToBuildModeStarted);
 	}
 }
 
@@ -80,35 +80,35 @@ void ASBPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
-	if (PlayerController != nullptr)
-	{
-		PlayerController->PlayerCameraManager->ViewPitchMax = 70.0f;
-		PlayerController->PlayerCameraManager->ViewPitchMin = -70.0f;
-		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
-		if (Subsystem != nullptr)
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
-	}
+	SetInputMappingContext();
 
 	// Spawn Weapon
 	UWorld* World = GetWorld();
-	FActorSpawnParameters WeaponSpawnParameters;
-	WeaponSpawnParameters.Owner = this;
-	if (WeaponClass0)
 	{
-		StockWeaponInQuickSlot(
-			GetWorld()->SpawnActor<AWeapon>(WeaponClass0, WeaponSpawnParameters),
-			0
-		);
+		FActorSpawnParameters WeaponSpawnParameters;
+		WeaponSpawnParameters.Owner = this;
+		if (WeaponClass0)
+		{
+			StockWeaponInQuickSlot(
+				GetWorld()->SpawnActor<AWeapon>(WeaponClass0, WeaponSpawnParameters),
+				0
+			);
+		}
+		if (WeaponClass1)
+		{
+			StockWeaponInQuickSlot(
+				GetWorld()->SpawnActor<AWeapon>(WeaponClass1, WeaponSpawnParameters),
+				1
+			);
+		}
 	}
-	if (WeaponClass1)
+
+	// Spawn BuildCameraPawn
+	FActorSpawnParameters BuildCameraSpawnParameters;
+	if (BuildCameraPawnClass)
 	{
-		StockWeaponInQuickSlot(
-			GetWorld()->SpawnActor<AWeapon>(WeaponClass1, WeaponSpawnParameters),
-			1
-		);
+		BuildCameraPawn = GetWorld()->SpawnActor<ABuildCameraPawn>(BuildCameraPawnClass, BuildCameraSpawnParameters);
+		BuildCameraPawn->SetPlayerCharacter(this);
 	}
 }
 
@@ -117,7 +117,7 @@ void ASBPlayer::StockWeaponInQuickSlot(AWeapon* Weapon, uint32 Index)
 	if (Weapon)
 	{
 		WeaponQuickslot[Index] = Weapon;
-		SetWeaponVisibility(Weapon, false);
+		SetWeaponVisibility(Weapon, false, false);
 	}
 }
 
@@ -127,6 +127,15 @@ void ASBPlayer::PlayMontage(UAnimMontage* Montage)
 	if (AnimInstance && Montage)
 	{
 		AnimInstance->Montage_Play(Montage);
+	}
+}
+
+void ASBPlayer::StopMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		AnimInstance->Montage_Stop(0.2f);
 	}
 }
 
@@ -179,6 +188,11 @@ bool ASBPlayer::IsFireReady() const
 		ZoomState == ECharacterZoomState::ECZS_Zooming &&
 		GetUpperBodyState() == EUpperBodyState::EUBS_Idle
 		;
+}
+
+void ASBPlayer::OnPlayerPossessStarted_Implementation()
+{
+	SetInputMappingContext();
 }
 
 bool ASBPlayer::IsUnarmed() const
@@ -362,22 +376,34 @@ void ASBPlayer::EquipWeapon(uint32 Index)
 	bUnArmed = false;
 	SetCurrentWeapon(Index);
 	AttachWeapon(GetCurrentWeapon(), RightHandSocketName);
-	SetWeaponVisibility(GetCurrentWeapon(), true);
+	SetWeaponVisibility(GetCurrentWeapon(), true, true);
 }
 
 void ASBPlayer::UnequipWeapon()
 {
 	bUnArmed = true;
 	DettachWeapon(GetCurrentWeapon());
-	SetWeaponVisibility(GetCurrentWeapon(), false);
+	SetWeaponVisibility(GetCurrentWeapon(), false, true);
+	StopMontage();
+	if (GetCurrentWeapon())
+	{
+		GetCurrentWeapon()->StopMontage();
+	}
 	CurrentWeaponIndex = 3;
 }
 
-void ASBPlayer::SetWeaponVisibility(AWeapon* Weapon, bool bVisibility)
+void ASBPlayer::SetWeaponVisibility(AWeapon* Weapon, bool bVisibility, bool bEffect)
 {
 	if (Weapon)
 	{
-		Weapon->SetMeshVisibleWithEffect(bVisibility);
+		if (bEffect)
+		{
+			Weapon->SetMeshVisibleWithEffect(bVisibility);
+		}
+		else
+		{
+			Weapon->GetMesh()->SetVisibility(bVisibility);
+		}
 	}
 }
 
@@ -414,6 +440,20 @@ void ASBPlayer::ReloadEnd()
 void ASBPlayer::EquipEnd()
 {
 	UpperBodyState = EUpperBodyState::EUBS_Idle;
+}
+
+void ASBPlayer::ToggleToBuildModeStarted()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	if (PlayerController)
+	{
+		check(BuildCameraPawn);
+		RemoveInputMappingContext();
+		PlayerController->UnPossess();
+		PlayerController->Possess(BuildCameraPawn);
+		BuildCameraPawn->OnPlayerPossessStarted();
+		GetCharacterMovement()->StopMovementImmediately();
+	}
 }
 
 bool ASBPlayer::IsPlayingMontage(UAnimMontage* Montage) const
@@ -454,4 +494,32 @@ bool ASBPlayer::IsPlayingReloadMontage(AWeapon* Weapon) const
 		return IsPlayingMontage(Montage);
 	}
 	return false;
+}
+
+void ASBPlayer::SetInputMappingContext()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	if (PlayerController != nullptr)
+	{
+		PlayerController->PlayerCameraManager->ViewPitchMax = 70.0f;
+		PlayerController->PlayerCameraManager->ViewPitchMin = -70.0f;
+		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+		if (Subsystem != nullptr)
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
+}
+
+void ASBPlayer::RemoveInputMappingContext()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	if (PlayerController != nullptr)
+	{
+		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+		if (Subsystem != nullptr)
+		{
+			Subsystem->RemoveMappingContext(DefaultMappingContext);
+		}
+	}
 }
