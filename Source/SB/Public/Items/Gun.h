@@ -71,7 +71,7 @@ protected:
 	int32 BurstNum = 3;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Gun")
-	float SpreadAngle = 2.0f;
+	float SpreadAngleInDegrees = 2.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Gun")
 	EFireMode FireMode = EFireMode::EFM_SemiAuto;

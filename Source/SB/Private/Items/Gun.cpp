@@ -138,19 +138,22 @@ FTransform AGun::CalcBulletSpawnTransform()
 	if (Player)
 	{
 		UCameraComponent* Camera = Player->GetCameraComponent();
-		const FVector TraceStart = Camera->GetComponentLocation(); 
-		const FRotator CameraRotation = Camera->GetComponentRotation();
-		const FVector TraceEnd = TraceStart + CameraRotation.Vector() * 10000.0f;
+		const FVector CameraLocation = Camera->GetComponentLocation();
+		const FVector CameraForward = Camera->GetForwardVector();
+
+		float SpreadAngleInRadians = FMath::DegreesToRadians(SpreadAngleInDegrees);
+		const FVector ShootDirection = FMath::VRandCone(CameraForward, SpreadAngleInRadians);
+
+		const FVector TraceStart = CameraLocation;
+		const FVector TraceEnd = TraceStart + ShootDirection * 10000.0f;
 		TArray<AActor*> ActorsToIgnore;
 		ActorsToIgnore.Add(this);
 		ActorsToIgnore.Add(Player);
 		FHitResult HitResult;
-		UKismetSystemLibrary::BoxTraceSingle(
+		UKismetSystemLibrary::LineTraceSingle(
 			this,
 			TraceStart,
 			TraceEnd,
-			FVector(10.0f, 10.0f, 10.0f),
-			CameraRotation,
 			ETraceTypeQuery::TraceTypeQuery1,
 			false,
 			ActorsToIgnore,
@@ -163,17 +166,6 @@ FTransform AGun::CalcBulletSpawnTransform()
 		{
 			TargetLocation = HitResult.ImpactPoint;
 		}
-
-		// 반동(총알 확산) 구현
-		FVector Offset = FVector(0.0f, FMath::FRand(), FMath::FRand());
-		Offset = CameraRotation.RotateVector(Offset);
-		Offset = UKismetMathLibrary::Normal(Offset);
-
-		float Radius = FMath::Tan(FMath::DegreesToRadians(SpreadAngle)) * (TargetLocation - Transform.GetLocation()).Length();
-		Offset *= Radius;
-		TargetLocation += Offset;
-		SCREEN_LOG(1, Offset.ToString());
-		SCREEN_LOG(2, TargetLocation.ToString());
 
 		FRotator Rotator = UKismetMathLibrary::FindLookAtRotation(Transform.GetLocation(), TargetLocation);
 		Transform.SetRotation(Rotator.Quaternion());
