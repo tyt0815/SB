@@ -7,6 +7,8 @@
 #include "SB/DebugMacro.h"
 #include "Characters/Player/SBPlayer.h"
 #include "PlayerController/SBPlayerController.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ABuildCameraPawn::ABuildCameraPawn()
 {
@@ -32,6 +34,7 @@ void ABuildCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	{
 		EnhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ABuildCameraPawn::Move);
 		EnhancedInputComponent->BindAction(ToggleToPlayerCharacterInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::ToggleToPlayerCharacter);		EnhancedInputComponent->BindAction(ToggleToPlayerCharacterInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::ToggleToPlayerCharacter);			EnhancedInputComponent->BindAction(ToggleToPlayerCharacterInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::ToggleToPlayerCharacter);		EnhancedInputComponent->BindAction(ToggleToPlayerCharacterInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::ToggleToPlayerCharacter);
+		EnhancedInputComponent->BindAction(Mouse1InputAction, ETriggerEvent::Triggered, this, &ABuildCameraPawn::Mouse1Triggered);
 	}
 }
 
@@ -77,6 +80,33 @@ void ABuildCameraPawn::ToggleToPlayerCharacter()
 	}
 }
 
+void ABuildCameraPawn::Mouse1Triggered(const FInputActionValue& Value)
+{
+	FVector MouseWorldPosition;
+	FVector MouseWorldDirection;
+	GetMouseWorldPosition(MouseWorldPosition, MouseWorldDirection);
+
+	FVector LineTraceEnd = MouseWorldPosition + MouseWorldDirection * 10000.0f;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+	FHitResult HitResult;
+	UKismetSystemLibrary::LineTraceSingle(
+		this,
+		MouseWorldPosition,
+		LineTraceEnd,
+		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel1),
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		HitResult,
+		true
+	);
+	if (HitResult.GetActor())
+	{
+		SCREEN_LOG_NONE_KEY(HitResult.GetActor()->GetName());
+	}
+}
+
 void ABuildCameraPawn::SetInputMappingContext()
 {
 	APlayerController* PlayerController = Cast<APlayerController>(Controller);
@@ -108,5 +138,14 @@ void ABuildCameraPawn::TransferPlayerControllerPossessionToPawn(APawn* Pawn)
 		PlayerController->RemoveInputMappingContext(DefaultMappingContext);
 		PlayerController->UnPossess();
 		PlayerController->Possess(Pawn);
+	}
+}
+
+void ABuildCameraPawn::GetMouseWorldPosition(FVector& WorldLocation, FVector& WorldDirection)
+{
+	ASBPlayerController* PlayerController = Cast<ASBPlayerController>(GetController());
+	if (PlayerController)
+	{
+		PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
 	}
 }

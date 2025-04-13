@@ -28,4 +28,5 @@ protected:
 
 private:
 	UEnhancedInputLocalPlayerSubsystem* EnhancedInputLocalPlayerSubsystem;
+	AActor* SelectedActor = nullptr;
 };

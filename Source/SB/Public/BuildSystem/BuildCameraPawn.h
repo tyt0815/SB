@@ -40,6 +40,7 @@ public:
 protected:
 	void Move(const FInputActionValue& Value);
 	void ToggleToPlayerCharacter();
+	void Mouse1Triggered(const FInputActionValue& Value);
 	void SetInputMappingContext();
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
@@ -51,12 +52,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
 	UInputAction* ToggleToPlayerCharacterInputAction;
 
+	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UInputAction* Mouse1InputAction;
+
 	UPROPERTY(BlueprintReadOnly, Category = "References")
 	ASBPlayer* PlayerCharacter;
 
 private:
 	void InitializePlayerController();
 	void TransferPlayerControllerPossessionToPawn(APawn* Pawn);
+	void GetMouseWorldPosition(FVector& WorldLocation, FVector& WorldDirection);
 
 public:
 };
