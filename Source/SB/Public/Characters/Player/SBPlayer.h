@@ -131,8 +131,8 @@ private:
 	bool IsPlayingFireMontage(AWeapon* Weapon) const;
 	bool IsPlayingEquipMontage(AWeapon* Weapon) const;
 	bool IsPlayingReloadMontage(AWeapon* Weapon) const;
-	void SetInputMappingContext();
-	void RemoveInputMappingContext();
+	void InitializePlayerController();
+	void TransferPlayerControllerPossessionToPawn(APawn* Pawn);
 
 	/*
 	* Enhanced Input

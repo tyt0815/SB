@@ -10,6 +10,7 @@
 #include "InputActionValue.h"
 #include "Items/Weapon.h"
 #include "SB/DebugMacro.h"
+#include "PlayerController/SBPlayerController.h"
 
 ASBPlayer::ASBPlayer()
 {
@@ -80,10 +81,11 @@ void ASBPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetInputMappingContext();
+	InitializePlayerController();
 
 	// Spawn Weapon
 	UWorld* World = GetWorld();
+	if(World)
 	{
 		FActorSpawnParameters WeaponSpawnParameters;
 		WeaponSpawnParameters.Owner = this;
@@ -101,14 +103,18 @@ void ASBPlayer::BeginPlay()
 				1
 			);
 		}
-	}
 
-	// Spawn BuildCameraPawn
-	FActorSpawnParameters BuildCameraSpawnParameters;
-	if (BuildCameraPawnClass)
-	{
-		BuildCameraPawn = GetWorld()->SpawnActor<ABuildCameraPawn>(BuildCameraPawnClass, BuildCameraSpawnParameters);
-		BuildCameraPawn->SetPlayerCharacter(this);
+		// Spawn BuildCameraPawn
+		if (BuildCameraPawnClass)
+		{
+			FActorSpawnParameters BuildCameraSpawnParameters;
+			BuildCameraSpawnParameters.Owner = this;
+			BuildCameraPawn = GetWorld()->SpawnActor<ABuildCameraPawn>(BuildCameraPawnClass, BuildCameraSpawnParameters);
+		}
+		if (BuildCameraPawn == nullptr)
+		{
+			SCREEN_LOG_NONE_KEY("ABuildCameraPawn spawn failed.");
+		}
 	}
 }
 
@@ -192,7 +198,7 @@ bool ASBPlayer::IsFireReady() const
 
 void ASBPlayer::OnPlayerPossessStarted_Implementation()
 {
-	SetInputMappingContext();
+	InitializePlayerController();
 }
 
 bool ASBPlayer::IsUnarmed() const
@@ -444,16 +450,12 @@ void ASBPlayer::EquipEnd()
 
 void ASBPlayer::ToggleToBuildModeStarted()
 {
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
-	if (PlayerController)
+	if (BuildCameraPawn)
 	{
-		check(BuildCameraPawn);
-		RemoveInputMappingContext();
-		PlayerController->UnPossess();
-		PlayerController->Possess(BuildCameraPawn);
+		TransferPlayerControllerPossessionToPawn(BuildCameraPawn);
 		BuildCameraPawn->OnPlayerPossessStarted();
-		GetCharacterMovement()->StopMovementImmediately();
 	}
+	GetCharacterMovement()->StopMovementImmediately();
 }
 
 bool ASBPlayer::IsPlayingMontage(UAnimMontage* Montage) const
@@ -496,30 +498,25 @@ bool ASBPlayer::IsPlayingReloadMontage(AWeapon* Weapon) const
 	return false;
 }
 
-void ASBPlayer::SetInputMappingContext()
+void ASBPlayer::InitializePlayerController()
 {
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
-	if (PlayerController != nullptr)
+	ASBPlayerController* PlayerController = Cast<ASBPlayerController>(GetController());
+	if (PlayerController)
 	{
+		PlayerController->SetMouseInterface(false);
 		PlayerController->PlayerCameraManager->ViewPitchMax = 70.0f;
 		PlayerController->PlayerCameraManager->ViewPitchMin = -70.0f;
-		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
-		if (Subsystem != nullptr)
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
+		PlayerController->AddInputMappingContext(DefaultMappingContext);
 	}
 }
 
-void ASBPlayer::RemoveInputMappingContext()
+void ASBPlayer::TransferPlayerControllerPossessionToPawn(APawn* Pawn)
 {
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
-	if (PlayerController != nullptr)
+	ASBPlayerController* PlayerController = Cast<ASBPlayerController>(Controller);
+	if (PlayerController)
 	{
-		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
-		if (Subsystem != nullptr)
-		{
-			Subsystem->RemoveMappingContext(DefaultMappingContext);
-		}
+		PlayerController->RemoveInputMappingContext(DefaultMappingContext);
+		PlayerController->UnPossess();
+		PlayerController->Possess(Pawn);
 	}
 }

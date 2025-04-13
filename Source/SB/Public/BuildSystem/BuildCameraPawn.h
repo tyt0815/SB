@@ -11,6 +11,7 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
+class ASBPlayer;
 
 UCLASS()
 class SB_API ABuildCameraPawn : public APawn
@@ -30,8 +31,6 @@ public:
 	void OnPlayerPossessStarted();
 	virtual void OnPlayerPossessStarted_Implementation();
 
-	void SetMouseInterface(bool bUseMouse);
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	UCameraComponent* FollowCamera;
 
@@ -42,7 +41,6 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void ToggleToPlayerCharacter();
 	void SetInputMappingContext();
-	void RemoveInputMappingContext();
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
 	UInputMappingContext* DefaultMappingContext;
@@ -54,14 +52,11 @@ protected:
 	UInputAction* ToggleToPlayerCharacterInputAction;
 
 	UPROPERTY(BlueprintReadOnly, Category = "References")
-	class ASBPlayer* PlayerCharacter;
+	ASBPlayer* PlayerCharacter;
 
 private:
-	
+	void InitializePlayerController();
+	void TransferPlayerControllerPossessionToPawn(APawn* Pawn);
 
 public:
-	FORCEINLINE void SetPlayerCharacter(ASBPlayer* Player)
-	{
-		PlayerCharacter = Player;
-	}
 };

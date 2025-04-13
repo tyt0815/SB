@@ -6,6 +6,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "SB/DebugMacro.h"
 #include "Characters/Player/SBPlayer.h"
+#include "PlayerController/SBPlayerController.h"
 
 ABuildCameraPawn::ABuildCameraPawn()
 {
@@ -37,27 +38,24 @@ void ABuildCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 void ABuildCameraPawn::BeginPlay()
 {
 	Super::BeginPlay();
+
+	PlayerCharacter = Cast<ASBPlayer>(GetOwner());
+	if (PlayerCharacter == nullptr)
+	{
+		SCREEN_LOG_NONE_KEY("ABuildCameraPawn class must owned by ASBPlayer when BeginPlay");
+	}
 }
 
 void ABuildCameraPawn::OnPlayerPossessStarted_Implementation()
 {
 	UCameraComponent* PlayerCamera = PlayerCharacter->GetCameraComponent();
-	SetActorLocation(PlayerCamera->GetComponentLocation());
-	SetActorRotation(PlayerCamera->GetComponentRotation());
-	FollowCamera->FieldOfView = PlayerCamera->FieldOfView;
-	SetInputMappingContext();
-	SetMouseInterface(true);
-}
-
-void ABuildCameraPawn::SetMouseInterface(bool bUseMouse)
-{
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController)
+	if (PlayerCamera)
 	{
-		PlayerController->bShowMouseCursor = bUseMouse;
-		PlayerController->bEnableClickEvents = bUseMouse;
-		PlayerController->bEnableMouseOverEvents = bUseMouse;
+		SetActorLocation(PlayerCamera->GetComponentLocation());
+		SetActorRotation(PlayerCamera->GetComponentRotation());
+		FollowCamera->FieldOfView = PlayerCamera->FieldOfView;
 	}
+	InitializePlayerController();
 }
 
 void ABuildCameraPawn::Move(const FInputActionValue& Value)
@@ -72,13 +70,9 @@ void ABuildCameraPawn::Move(const FInputActionValue& Value)
 
 void ABuildCameraPawn::ToggleToPlayerCharacter()
 {
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController && PlayerCharacter)
-	{	
-		RemoveInputMappingContext();
-		SetMouseInterface(false);
-		PlayerController->UnPossess();
-		PlayerController->Possess(PlayerCharacter);
+	if (PlayerCharacter)
+	{
+		TransferPlayerControllerPossessionToPawn(PlayerCharacter);
 		PlayerCharacter->OnPlayerPossessStarted();
 	}
 }
@@ -96,16 +90,23 @@ void ABuildCameraPawn::SetInputMappingContext()
 	}
 }
 
-void ABuildCameraPawn::RemoveInputMappingContext()
+void ABuildCameraPawn::InitializePlayerController()
 {
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
-	if (PlayerController != nullptr)
+	ASBPlayerController* PlayerController = Cast<ASBPlayerController>(GetController());
+	if (PlayerController)
 	{
-		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
-		if (Subsystem != nullptr)
-		{
-			Subsystem->RemoveMappingContext(DefaultMappingContext);
-		}
+		PlayerController->AddInputMappingContext(DefaultMappingContext);
+		PlayerController->SetMouseInterface(true);
 	}
 }
 
+void ABuildCameraPawn::TransferPlayerControllerPossessionToPawn(APawn* Pawn)
+{
+	ASBPlayerController* PlayerController = Cast<ASBPlayerController>(GetController());
+	if (PlayerController)
+	{
+		PlayerController->RemoveInputMappingContext(DefaultMappingContext);
+		PlayerController->UnPossess();
+		PlayerController->Possess(Pawn);
+	}
+}
