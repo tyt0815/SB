@@ -25,6 +25,9 @@ public:
 	void OnMouseHoverEnded();
 	void OnSelected();
 	void OnDeselected();
+	float GetZOffset() const;
+	void SetVisibility(bool bVisibility);
+	void SetAsPreview();
 
 
 protected:
@@ -46,5 +49,9 @@ public:
 	FORCEINLINE UStaticMeshComponent* GetMesh() const
 	{
 		return Mesh;
+	}
+	FORCEINLINE UBoxComponent* GetBoxComponent() const
+	{
+		return BoxComponent;
 	}
 };

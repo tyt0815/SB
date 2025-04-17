@@ -38,7 +38,8 @@ void ABuildCameraPawn::Tick(float DeltaTime)
 	case EBuildMode::EBM_Placement:
 	{
 		check(GetCurrentPreviewBuilding());
-		GetCurrentPreviewBuilding()->SetActorLocation(MouseDownTraceHit.ImpactPoint);
+
+		GetCurrentPreviewBuilding()->SetActorLocation(CalculatePlacementLocation(GetCurrentPreviewBuilding()));
 		break;
 	}
 
@@ -81,7 +82,11 @@ void ABuildCameraPawn::BeginPlay()
 			if (PreviewBuildingClasses[i])
 			{
 				PreviewBuildings[i] = GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClasses[i]);
-				SetBuildingVisibility(PreviewBuildings[i], false);
+				if (PreviewBuildings[i])
+				{
+					PreviewBuildings[i]->SetVisibility(false);
+					PreviewBuildings[i]->SetAsPreview();
+				}
 			}
 		}
 	}
@@ -136,7 +141,7 @@ void ABuildCameraPawn::MouseLTriggered()
 			ABuilding* Building = GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClasses[CurrentPreviewBuildingIndex]);
 			if (Building)
 			{
-				Building->SetActorLocation(MouseDownTraceHit.ImpactPoint);
+				Building->SetActorLocation(CalculatePlacementLocation(Building));
 			}
 		}
 		EndPlacementMode();
@@ -165,7 +170,10 @@ void ABuildCameraPawn::MouseRTriggered()
 void ABuildCameraPawn::EndPlacementMode()
 {
 	CurrentPreviewBuildingIndex = 0;
-	SetBuildingVisibility(GetCurrentPreviewBuilding(), false);
+	if (GetCurrentPreviewBuilding())
+	{
+		GetCurrentPreviewBuilding()->SetVisibility(false);
+	}
 	BuildMode = EBuildMode::EBM_Interaction;
 }
 
@@ -236,6 +244,13 @@ void ABuildCameraPawn::TraceUnderMouseCursor()
 	);
 }
 
+FVector ABuildCameraPawn::CalculatePlacementLocation(ABuilding* Building)
+{
+	FVector Location = MouseDownTraceHit.ImpactPoint;
+	Location.Z += Building->GetZOffset();
+	return Location;
+}
+
 void ABuildCameraPawn::InitializePlayerController()
 {
 	ASBPlayerController* PlayerController = Cast<ASBPlayerController>(GetController());
@@ -302,20 +317,26 @@ void ABuildCameraPawn::ChangeSelectedBuilding(ABuilding* Building)
 
 void ABuildCameraPawn::ChangePreviewBuilding(int i)
 {
-	ABuilding* Old = GetCurrentPreviewBuilding();
-	ABuilding* New = nullptr;
+	ABuilding* OldBuilding = GetCurrentPreviewBuilding();
+	ABuilding* NewBuilding = nullptr;
 	if (PreviewBuildings.IsValidIndex(i))
 	{
-		New = PreviewBuildings[i];
+		NewBuilding = PreviewBuildings[i];
 	}
-	if (New == Old)
+	if (NewBuilding == OldBuilding)
 	{
 
 	}
 	else
 	{
-		SetBuildingVisibility(Old, false);
-		SetBuildingVisibility(New, true);
+		if (OldBuilding)
+		{
+			OldBuilding->SetVisibility(false);
+		}
+		if (NewBuilding)
+		{
+			NewBuilding->SetVisibility(true);
+		}
 		CurrentPreviewBuildingIndex = i;
 	}
 }
@@ -326,14 +347,5 @@ void ABuildCameraPawn::SwitchToPlacementMode(int PreviewBuildingIndex)
 	{
 		BuildMode = EBuildMode::EBM_Placement;
 		ChangePreviewBuilding(PreviewBuildingIndex);
-	}
-}
-
-void ABuildCameraPawn::SetBuildingVisibility(ABuilding* Building, bool bVisibility)
-{
-	if (Building)
-	{
-		Building->GetMesh()->SetVisibility(bVisibility);
-		Building->SetActorLocation(FVector(0.0f, 0.0f, 100000.0f));
 	}
 }

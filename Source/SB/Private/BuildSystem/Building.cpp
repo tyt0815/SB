@@ -63,6 +63,23 @@ void ABuilding::OnDeselected()
 	SetOutlineDraw(false, 0);
 }
 
+float ABuilding::GetZOffset() const
+{
+	return BoxComponent->GetScaledBoxExtent().Z;
+}
+
+void ABuilding::SetVisibility(bool bVisibility)
+{
+	Mesh->SetVisibility(bVisibility);
+	SetActorLocation(FVector(0.0f, 0.0f, 100000.0f));
+}
+
+void ABuilding::SetAsPreview()
+{
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	BoxComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
 void ABuilding::SetOutlineDraw(bool bDraw, int Color)
 {
 	SetRenderCustomDepthStencil(bDraw, Color);

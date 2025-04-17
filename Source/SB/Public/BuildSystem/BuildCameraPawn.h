@@ -57,6 +57,9 @@ protected:
 	void SetInputMappingContext();
 	void TraceUnderMouseCursor();
 
+	// Input must not be nullptr
+	FVector CalculatePlacementLocation(ABuilding* Building);
+
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
 	UInputMappingContext* DefaultMappingContext;
 
@@ -92,7 +95,6 @@ private:
 	void ChangeSelectedBuilding(ABuilding* Building);
 	void ChangePreviewBuilding(int i);
 	void SwitchToPlacementMode(int PreviewBuildingIndex);
-	void SetBuildingVisibility(ABuilding* Building, bool bVisibility);
 
 	ABuilding* MouseHoveredBuilding;
 	ABuilding* SelectedBuilding;
