@@ -12,6 +12,14 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 class ASBPlayer;
+class ABuilding;
+
+UENUM(BlueprintType)
+enum class EBuildMode : uint8
+{
+	EBM_Interaction UMETA(DisplayName = "Interaction"),
+	EBM_Placement UMETA(DisplayName = "Placement")
+};
 
 UCLASS()
 class SB_API ABuildCameraPawn : public APawn
@@ -40,8 +48,14 @@ public:
 protected:
 	void Move(const FInputActionValue& Value);
 	void ToggleToPlayerCharacter();
-	void Mouse1Triggered(const FInputActionValue& Value);
+	void MouseLTriggered();
+	void MouseRTriggered();
+	void EndPlacementMode();
+	void Num1Triggerd();
+	void SelectBuilding(ABuilding* Building);
+	void DeselectBuilding();
 	void SetInputMappingContext();
+	void TraceUnderMouseCursor();
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
 	UInputMappingContext* DefaultMappingContext;
@@ -53,15 +67,42 @@ protected:
 	UInputAction* ToggleToPlayerCharacterInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* Mouse1InputAction;
+	UInputAction* MouseLInputAction;
+
+	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UInputAction* MouseRInputAction;
+
+	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UInputAction* Num1InputAction;
 
 	UPROPERTY(BlueprintReadOnly, Category = "References")
 	ASBPlayer* PlayerCharacter;
+
+	UPROPERTY(BlueprintReadWrite, Category = "States")
+	EBuildMode BuildMode = EBuildMode::EBM_Interaction;
+
+	UPROPERTY(EditAnywhere, Category = "Subclasses")
+	TArray<TSubclassOf<ABuilding>> PreviewBuildingClasses;
 
 private:
 	void InitializePlayerController();
 	void TransferPlayerControllerPossessionToPawn(APawn* Pawn);
 	void GetMouseWorldPosition(FVector& WorldLocation, FVector& WorldDirection);
+	void ChangeMouseHoveredBuilding();
+	void ChangeSelectedBuilding(ABuilding* Building);
+	void ChangePreviewBuilding(int i);
+	void SwitchToPlacementMode(int PreviewBuildingIndex);
+	void SetBuildingVisibility(ABuilding* Building, bool bVisibility);
+
+	ABuilding* MouseHoveredBuilding;
+	ABuilding* SelectedBuilding;
+	TArray<ABuilding*> PreviewBuildings;
+	FHitResult MouseDownTraceHit;
+	int CurrentPreviewBuildingIndex = 0;
 
 public:
+	FORCEINLINE ABuilding* GetCurrentPreviewBuilding() const
+	{
+		return PreviewBuildings[CurrentPreviewBuildingIndex];
+	}
 };

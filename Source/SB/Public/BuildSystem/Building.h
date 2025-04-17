@@ -21,6 +21,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	void OnMouseHoverStarted();
+	void OnMouseHoverEnded();
+	void OnSelected();
+	void OnDeselected();
 
 
 protected:
@@ -29,4 +33,18 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* Mesh;
+
+	UPROPERTY(BlueprintReadOnly, Category = "States")
+	bool bSelected = false;
+
+private:
+	// 외곽선을 그린다. 색상은 PP_HightlightMaterial_Inst 의 색상을 참고.
+	void SetOutlineDraw(bool bDraw, int Color);
+	void SetRenderCustomDepthStencil(bool bRender, int Stencil);
+
+public:
+	FORCEINLINE UStaticMeshComponent* GetMesh() const
+	{
+		return Mesh;
+	}
 };

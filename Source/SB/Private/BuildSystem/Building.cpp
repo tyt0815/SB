@@ -1,5 +1,6 @@
 #include "BuildSystem/Building.h"
 #include "Components/BoxComponent.h"
+#include "SB/DebugMacro.h"
 
 ABuilding::ABuilding()
 {
@@ -32,4 +33,46 @@ void ABuilding::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void ABuilding::OnMouseHoverStarted()
+{
+	if (!bSelected)
+	{
+		SetOutlineDraw(true, 1);
+	}
+}
+
+void ABuilding::OnMouseHoverEnded()
+{
+	if (!bSelected)
+	{
+		SetOutlineDraw(false, 0);
+	}
+}
+
+void ABuilding::OnSelected()
+{
+	bSelected = true;
+	SetOutlineDraw(true, 2);
+}
+
+void ABuilding::OnDeselected()
+{
+	bSelected = false;
+	SetOutlineDraw(false, 0);
+}
+
+void ABuilding::SetOutlineDraw(bool bDraw, int Color)
+{
+	SetRenderCustomDepthStencil(bDraw, Color);
+}
+
+void ABuilding::SetRenderCustomDepthStencil(bool bRender, int Stencil)
+{
+	if (Mesh)
+	{
+		Mesh->SetRenderCustomDepth(bRender);
+		Mesh->SetCustomDepthStencilValue(Stencil);
+	}
 }

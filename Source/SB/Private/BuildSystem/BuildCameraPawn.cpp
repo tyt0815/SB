@@ -1,4 +1,5 @@
 #include "BuildSystem/BuildCameraPawn.h"
+#include "BuildSystem/Building.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
@@ -24,6 +25,28 @@ void ABuildCameraPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	TraceUnderMouseCursor();
+
+	switch (BuildMode)
+	{
+	case EBuildMode::EBM_Interaction:
+	{
+		ChangeMouseHoveredBuilding();
+		break;
+	}
+
+	case EBuildMode::EBM_Placement:
+	{
+		check(GetCurrentPreviewBuilding());
+		GetCurrentPreviewBuilding()->SetActorLocation(MouseDownTraceHit.ImpactPoint);
+		break;
+	}
+
+	default:
+	{
+		break;
+	};
+	}
 }
 
 void ABuildCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -34,7 +57,9 @@ void ABuildCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	{
 		EnhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ABuildCameraPawn::Move);
 		EnhancedInputComponent->BindAction(ToggleToPlayerCharacterInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::ToggleToPlayerCharacter);		EnhancedInputComponent->BindAction(ToggleToPlayerCharacterInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::ToggleToPlayerCharacter);			EnhancedInputComponent->BindAction(ToggleToPlayerCharacterInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::ToggleToPlayerCharacter);		EnhancedInputComponent->BindAction(ToggleToPlayerCharacterInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::ToggleToPlayerCharacter);
-		EnhancedInputComponent->BindAction(Mouse1InputAction, ETriggerEvent::Triggered, this, &ABuildCameraPawn::Mouse1Triggered);
+		EnhancedInputComponent->BindAction(MouseLInputAction, ETriggerEvent::Triggered, this, &ABuildCameraPawn::MouseLTriggered);
+		EnhancedInputComponent->BindAction(MouseRInputAction, ETriggerEvent::Triggered, this, &ABuildCameraPawn::MouseRTriggered);
+		EnhancedInputComponent->BindAction(Num1InputAction, ETriggerEvent::Triggered, this, &ABuildCameraPawn::Num1Triggerd);
 	}
 }
 
@@ -46,6 +71,19 @@ void ABuildCameraPawn::BeginPlay()
 	if (PlayerCharacter == nullptr)
 	{
 		SCREEN_LOG_NONE_KEY("ABuildCameraPawn class must owned by ASBPlayer when BeginPlay");
+	}
+
+	// CreatePreviewBuildings
+	{
+		PreviewBuildings.SetNum(PreviewBuildingClasses.Num());
+		for (int i = 0; i < PreviewBuildings.Num(); ++i)
+		{
+			if (PreviewBuildingClasses[i])
+			{
+				PreviewBuildings[i] = GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClasses[i]);
+				SetBuildingVisibility(PreviewBuildings[i], false);
+			}
+		}
 	}
 }
 
@@ -80,31 +118,86 @@ void ABuildCameraPawn::ToggleToPlayerCharacter()
 	}
 }
 
-void ABuildCameraPawn::Mouse1Triggered(const FInputActionValue& Value)
+void ABuildCameraPawn::MouseLTriggered()
 {
-	FVector MouseWorldPosition;
-	FVector MouseWorldDirection;
-	GetMouseWorldPosition(MouseWorldPosition, MouseWorldDirection);
-
-	FVector LineTraceEnd = MouseWorldPosition + MouseWorldDirection * 10000.0f;
-	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
-	FHitResult HitResult;
-	UKismetSystemLibrary::LineTraceSingle(
-		this,
-		MouseWorldPosition,
-		LineTraceEnd,
-		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel1),
-		false,
-		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
-		HitResult,
-		true
-	);
-	if (HitResult.GetActor())
+	switch (BuildMode)
 	{
-		SCREEN_LOG_NONE_KEY(HitResult.GetActor()->GetName());
+	case EBuildMode::EBM_Interaction:
+	{
+		ChangeSelectedBuilding(MouseHoveredBuilding);
+		break;
 	}
+	case EBuildMode::EBM_Placement:
+	{
+		check(GetCurrentPreviewBuilding());
+		if (PreviewBuildingClasses[CurrentPreviewBuildingIndex] && MouseDownTraceHit.GetActor())
+		{
+			FActorSpawnParameters SpawnParam;
+			ABuilding* Building = GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClasses[CurrentPreviewBuildingIndex]);
+			if (Building)
+			{
+				Building->SetActorLocation(MouseDownTraceHit.ImpactPoint);
+			}
+		}
+		EndPlacementMode();
+	}
+	}
+	
+}
+
+void ABuildCameraPawn::MouseRTriggered()
+{
+	switch (BuildMode)
+	{
+	case EBuildMode::EBM_Interaction:
+	{
+		break;
+	}
+	case EBuildMode::EBM_Placement:
+	{
+		EndPlacementMode();
+	}
+	default:
+		break;
+	}
+}
+
+void ABuildCameraPawn::EndPlacementMode()
+{
+	CurrentPreviewBuildingIndex = 0;
+	SetBuildingVisibility(GetCurrentPreviewBuilding(), false);
+	BuildMode = EBuildMode::EBM_Interaction;
+}
+
+void ABuildCameraPawn::Num1Triggerd()
+{
+	switch (BuildMode)
+	{
+	case EBuildMode::EBM_Interaction:
+	{
+		SwitchToPlacementMode(1);
+	}
+	}
+}
+
+void ABuildCameraPawn::SelectBuilding(ABuilding* Building)
+{
+	DeselectBuilding();
+
+	SelectedBuilding = Building;
+	if (SelectedBuilding)
+	{
+		SelectedBuilding->OnSelected();
+	}
+}
+
+void ABuildCameraPawn::DeselectBuilding()
+{
+	if (SelectedBuilding)
+	{
+		SelectedBuilding->OnDeselected();
+	}
+	SelectedBuilding = nullptr;
 }
 
 void ABuildCameraPawn::SetInputMappingContext()
@@ -118,6 +211,29 @@ void ABuildCameraPawn::SetInputMappingContext()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+}
+
+void ABuildCameraPawn::TraceUnderMouseCursor()
+{
+	FVector MouseWorldPosition;
+	FVector MouseWorldDirection;
+	GetMouseWorldPosition(MouseWorldPosition, MouseWorldDirection);
+
+	FVector LineTraceEnd = MouseWorldPosition + MouseWorldDirection * 10000.0f;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+	ActorsToIgnore.Add(GetCurrentPreviewBuilding());
+	UKismetSystemLibrary::LineTraceSingle(
+		this,
+		MouseWorldPosition,
+		LineTraceEnd,
+		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility),
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::None,
+		MouseDownTraceHit,
+		true
+	);
 }
 
 void ABuildCameraPawn::InitializePlayerController()
@@ -147,5 +263,77 @@ void ABuildCameraPawn::GetMouseWorldPosition(FVector& WorldLocation, FVector& Wo
 	if (PlayerController)
 	{
 		PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
+	}
+}
+
+void ABuildCameraPawn::ChangeMouseHoveredBuilding()
+{
+	ABuilding* Building = Cast<ABuilding>(MouseDownTraceHit.GetActor());
+	if (MouseHoveredBuilding == Building)
+	{
+		
+	}
+	else 
+	{
+		if (MouseHoveredBuilding)
+		{
+			MouseHoveredBuilding->OnMouseHoverEnded();
+		}
+
+		MouseHoveredBuilding = Building;
+		if (MouseHoveredBuilding)
+		{
+			Building->OnMouseHoverStarted();
+		}
+	}
+}
+
+void ABuildCameraPawn::ChangeSelectedBuilding(ABuilding* Building)
+{
+	if (SelectedBuilding == Building)
+	{
+		DeselectBuilding();
+	}
+	else
+	{
+		SelectBuilding(MouseHoveredBuilding);
+	}
+}
+
+void ABuildCameraPawn::ChangePreviewBuilding(int i)
+{
+	ABuilding* Old = GetCurrentPreviewBuilding();
+	ABuilding* New = nullptr;
+	if (PreviewBuildings.IsValidIndex(i))
+	{
+		New = PreviewBuildings[i];
+	}
+	if (New == Old)
+	{
+
+	}
+	else
+	{
+		SetBuildingVisibility(Old, false);
+		SetBuildingVisibility(New, true);
+		CurrentPreviewBuildingIndex = i;
+	}
+}
+
+void ABuildCameraPawn::SwitchToPlacementMode(int PreviewBuildingIndex)
+{
+	if (PreviewBuildings.IsValidIndex(PreviewBuildingIndex) && PreviewBuildings[PreviewBuildingIndex])
+	{
+		BuildMode = EBuildMode::EBM_Placement;
+		ChangePreviewBuilding(PreviewBuildingIndex);
+	}
+}
+
+void ABuildCameraPawn::SetBuildingVisibility(ABuilding* Building, bool bVisibility)
+{
+	if (Building)
+	{
+		Building->GetMesh()->SetVisibility(bVisibility);
+		Building->SetActorLocation(FVector(0.0f, 0.0f, 100000.0f));
 	}
 }
