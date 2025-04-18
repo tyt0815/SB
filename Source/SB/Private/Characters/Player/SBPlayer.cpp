@@ -1,6 +1,7 @@
 #include "Characters/Player/SBPlayer.h"
 
 #include "BuildSystem/BuildCameraPawn.h"
+#include "BuildSystem/BuildSystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "EnhancedInputComponent.h"
@@ -46,6 +47,9 @@ ASBPlayer::ASBPlayer()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);	// 카메라가 스프링 암에 부착되도록 설정. USpringArmComponent::SocketName는 "SpringEndPoint"로 스프링 암 끝부분에 부착되도록 설정
 	FollowCamera->bUsePawnControlRotation = false;	// 카메라가 컨트롤러에 의해 회전되지 않도록 설정
 
+	// BuildSystem 컴포넌트 생성
+	BuildSystemComponent = CreateDefaultSubobject<UBuildSystemComponent>(TEXT("BuildSystem"));
+
 	// 배열 초기화
 	WeaponQuickslot.SetNum(2);
 }
@@ -74,6 +78,7 @@ void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(SwitchWeapon1InputAction, ETriggerEvent::Started, this, &ASBPlayer::SwitchToWeapon1);
 		EnhancedInputComponent->BindAction(SwitchToUnarmInputAction, ETriggerEvent::Started, this, &ASBPlayer::SwitchToUnarmedState);
 		EnhancedInputComponent->BindAction(ToggleToBuildModeInputAction, ETriggerEvent::Started, this, &ASBPlayer::ToggleToBuildModeStarted);
+		EnhancedInputComponent->BindAction(ToggleToTopDownViewBuildModeInputAction, ETriggerEvent::Started, this, &ASBPlayer::ToggleToTopDownBuildModeStarted);
 	}
 }
 
@@ -104,17 +109,7 @@ void ASBPlayer::BeginPlay()
 			);
 		}
 
-		// Spawn BuildCameraPawn
-		if (BuildCameraPawnClass)
-		{
-			FActorSpawnParameters BuildCameraSpawnParameters;
-			BuildCameraSpawnParameters.Owner = this;
-			BuildCameraPawn = GetWorld()->SpawnActor<ABuildCameraPawn>(BuildCameraPawnClass, BuildCameraSpawnParameters);
-		}
-		if (BuildCameraPawn == nullptr)
-		{
-			SCREEN_LOG_NONE_KEY("ABuildCameraPawn spawn failed.");
-		}
+		SpawnBuildCameraPawn();
 	}
 }
 
@@ -450,12 +445,31 @@ void ASBPlayer::EquipEnd()
 
 void ASBPlayer::ToggleToBuildModeStarted()
 {
-	if (BuildCameraPawn)
+	if (ControllMode == ECharacterControllMode::ECCM_Build)
 	{
-		TransferPlayerControllerPossessionToPawn(BuildCameraPawn);
-		BuildCameraPawn->OnPlayerPossessStarted();
+		ControllMode = ECharacterControllMode::ECCM_Combat;
 	}
-	GetCharacterMovement()->StopMovementImmediately();
+	else
+	{
+		ControllMode = ECharacterControllMode::ECCM_Build;
+	}
+}
+
+void ASBPlayer::ToggleToTopDownBuildModeStarted()
+{
+	if (ControllMode == ECharacterControllMode::ECCM_Build)
+	{
+		if (BuildCameraPawn == nullptr)
+		{
+			SpawnBuildCameraPawn();
+		}
+		if (BuildCameraPawn)
+		{
+			TransferPlayerControllerPossessionToPawn(BuildCameraPawn);
+			BuildCameraPawn->OnPlayerPossessStarted();
+			GetCharacterMovement()->StopMovementImmediately();
+		}
+	}
 }
 
 bool ASBPlayer::IsPlayingMontage(UAnimMontage* Montage) const
@@ -518,5 +532,20 @@ void ASBPlayer::TransferPlayerControllerPossessionToPawn(APawn* Pawn)
 		PlayerController->RemoveInputMappingContext(DefaultMappingContext);
 		PlayerController->UnPossess();
 		PlayerController->Possess(Pawn);
+	}
+}
+
+void ASBPlayer::SpawnBuildCameraPawn()
+{
+	// Spawn BuildCameraPawn
+	if (BuildCameraPawnClass)
+	{
+		FActorSpawnParameters BuildCameraSpawnParameters;
+		BuildCameraSpawnParameters.Owner = this;
+		BuildCameraPawn = GetWorld()->SpawnActor<ABuildCameraPawn>(BuildCameraPawnClass, BuildCameraSpawnParameters);
+	}
+	if (BuildCameraPawn == nullptr)
+	{
+		SCREEN_LOG_NONE_KEY("ABuildCameraPawn spawn failed.");
 	}
 }

@@ -88,6 +88,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	UCameraComponent* FollowCamera;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
+	class UBuildSystemComponent* BuildSystemComponent;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera)
 	FVector ZoomOutCameraLoaction = FVector(500.0f, 0.0f, 120.0f);
 
@@ -127,12 +130,14 @@ private:
 	void ReloadEnd();
 	void EquipEnd();
 	void ToggleToBuildModeStarted();
+	void ToggleToTopDownBuildModeStarted();
 	bool IsPlayingMontage(UAnimMontage* Montage) const;
 	bool IsPlayingFireMontage(AWeapon* Weapon) const;
 	bool IsPlayingEquipMontage(AWeapon* Weapon) const;
 	bool IsPlayingReloadMontage(AWeapon* Weapon) const;
 	void InitializePlayerController();
 	void TransferPlayerControllerPossessionToPawn(APawn* Pawn);
+	void SpawnBuildCameraPawn();
 
 	/*
 	* Enhanced Input
@@ -170,6 +175,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
 	UInputAction* ToggleToBuildModeInputAction;
 
+	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UInputAction* ToggleToTopDownViewBuildModeInputAction;
+
 	/*
 	* Montages
 	*/
@@ -188,6 +196,7 @@ private:
 	uint16 CurrentWeaponIndex = 3;
 	bool bUnArmed = true;
 	EUpperBodyState UpperBodyState = EUpperBodyState::EUBS_Idle;
+	ECharacterControllMode ControllMode = ECharacterControllMode::ECCM_Combat;
 
 public:
 	FORCEINLINE UCameraComponent* GetCameraComponent() const

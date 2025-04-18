@@ -28,3 +28,10 @@ enum class EUpperBodyState : uint8
 	EUBS_Reloading UMETA(DisplayName = "Reloading"),
 	EUBS_Equipping UMETA(DisplayName = "Equipping")
 };
+
+UENUM(BlueprintType)
+enum class ECharacterControllMode : uint8
+{
+	ECCM_Combat UMETA(DisplayName = "Combat"),
+	ECCM_Build UMETA(DisplayName = "Build")
+};
