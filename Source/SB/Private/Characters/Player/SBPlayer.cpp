@@ -55,6 +55,10 @@ void ASBPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (BuildingCreater)
+	{
+		BuildingCreater->SnapLocation(GetActorLocation() - (FVector::ZAxisVector * 50));
+	}
 }
 
 void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -379,6 +383,10 @@ void ASBPlayer::SwitchWeapon(uint32 Index)
 void ASBPlayer::SwitchBuildPreviewMesh(uint32 Index)
 {
 	// TODO
+	if (BuildingCreater)
+	{
+		BuildingCreater->SetPreviewBuilding(Index);
+	}
 }
 
 void ASBPlayer::EquipWeapon(uint32 Index)

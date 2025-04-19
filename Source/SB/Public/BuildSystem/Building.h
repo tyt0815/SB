@@ -27,7 +27,7 @@ public:
 	void OnDeselected();
 	float GetZOffset() const;
 	void SetVisibility(bool bVisibility);
-	void SetAsPreview();
+	void SetAsPreview(UMaterialInterface* Material);
 
 
 protected:

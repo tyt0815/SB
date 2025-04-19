@@ -85,7 +85,7 @@ void ABuildCameraPawn::BeginPlay()
 				if (PreviewBuildings[i])
 				{
 					PreviewBuildings[i]->SetVisibility(false);
-					PreviewBuildings[i]->SetAsPreview();
+					// PreviewBuildings[i]->SetAsPreview();
 				}
 			}
 		}

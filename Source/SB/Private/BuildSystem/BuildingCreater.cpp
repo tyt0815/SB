@@ -1,4 +1,5 @@
 #include "BuildSystem/BuildingCreater.h"
+#include "BuildSystem/Building.h"
 #include "Components/ArrowComponent.h"
 #include "Components/DecalComponent.h"
 
@@ -40,6 +41,41 @@ void ABuildingCreater::BeginPlay()
 	Super::BeginPlay();
 
 	SetGridMaterial(ValidCellMaterial);
+}
+
+void ABuildingCreater::SetPreviewBuilding(uint32 i)
+{
+	if (BuildingClasses.IsValidIndex(i) && BuildingClasses[i])
+	{
+		DestroyPreviewBuilding();
+
+		PreviewBuilding = GetWorld()->SpawnActor<ABuilding>(BuildingClasses[i]);
+		if (PreviewBuilding)
+		{
+			PreviewBuilding->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+			PreviewBuilding->SetAsPreview(PreviewMaterial);
+			SetGridVisibility(true);
+		}
+	}
+}
+
+void ABuildingCreater::DestroyPreviewBuilding()
+{
+	if (PreviewBuilding)
+	{
+		PreviewBuilding->Destroy();
+		PreviewBuilding = nullptr;
+	}
+}
+
+void ABuildingCreater::SnapLocation(FVector WorldLocation)
+{
+	int XIndex = WorldLocation.X / CellSize;
+	int YIndex = WorldLocation.Y / CellSize;
+	FVector SnappedLocation = WorldLocation;
+	SnappedLocation.X = CellSize * (XIndex + 0.5f);
+	SnappedLocation.Y = CellSize * (YIndex + 0.5f);
+	SetActorLocation(SnappedLocation);
 }
 
 void ABuildingCreater::SetGridVisibility(bool bVisibility, bool bForce)

@@ -4,7 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "BuildingCreater.generated.h"
 
-class FMaterial;
+class ABuilding;
 
 UCLASS()
 class SB_API ABuildingCreater : public AActor
@@ -19,6 +19,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	void SetPreviewBuilding(uint32 i);
+	void DestroyPreviewBuilding();
+	void SnapLocation(FVector WorldLocation);
+
 	UFUNCTION(BlueprintCallable)
 	void SetGridVisibility(bool bVisibility, bool bForce = false);
 
@@ -48,8 +52,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = BuildingCreater)
 	int CellExtentY = 10;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = BuildingCreater)
+	TArray<TSubclassOf<ABuilding>> BuildingClasses;
+
 	TArray<TArray<UDecalComponent*>> DecalComponents;
 
 private	:
+	ABuilding* PreviewBuilding;
 	bool bGridVisibility = true;
 };

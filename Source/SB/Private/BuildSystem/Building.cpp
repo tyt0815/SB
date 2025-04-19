@@ -74,10 +74,20 @@ void ABuilding::SetVisibility(bool bVisibility)
 	SetActorLocation(FVector(0.0f, 0.0f, 100000.0f));
 }
 
-void ABuilding::SetAsPreview()
+void ABuilding::SetAsPreview(UMaterialInterface* Material)
 {
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	BoxComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Mesh->bReceivesDecals = false;
+	SetActorRelativeLocation(FVector(0.0f, 0.0f, GetZOffset()));
+	if (Material)
+	{
+		int MaterialCounts = Mesh->GetNumMaterials();
+		for (int i = 0; i < MaterialCounts; ++i)
+		{
+			Mesh->SetMaterial(i, Material);
+		}
+	}
 }
 
 void ABuilding::SetOutlineDraw(bool bDraw, int Color)
