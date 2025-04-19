@@ -1,6 +1,5 @@
 #include "BuildSystem/BuildCameraPawn.h"
 #include "BuildSystem/Building.h"
-#include "BuildSystem/BuildSystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
@@ -20,8 +19,6 @@ ABuildCameraPawn::ABuildCameraPawn()
 	SetRootComponent(FollowCamera);
 
 	MovementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("FloatingPawnMovement"));
-
-	BuildSystemComponent = CreateDefaultSubobject<UBuildSystemComponent>(TEXT("BuildSystem"));
 }
 
 void ABuildCameraPawn::Tick(float DeltaTime)

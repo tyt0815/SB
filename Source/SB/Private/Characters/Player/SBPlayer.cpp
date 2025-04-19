@@ -1,7 +1,6 @@
 #include "Characters/Player/SBPlayer.h"
 
 #include "BuildSystem/BuildCameraPawn.h"
-#include "BuildSystem/BuildSystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "EnhancedInputComponent.h"
@@ -18,7 +17,7 @@ ASBPlayer::ASBPlayer()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// ÄÁÆ®·Ñ·¯ÀÇ È¸Àü¿¡ Ä³¸¯ÅÍ°¡ È¸ÀüÇÏÁö ¾Êµµ·Ï ¼³Á¤
+	// ï¿½ï¿½Æ®ï¿½Ñ·ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í°ï¿½ È¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
@@ -27,7 +26,7 @@ ASBPlayer::ASBPlayer()
 
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);	// È¸Àü ¼Óµµ
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);	// È¸ï¿½ï¿½ ï¿½Óµï¿½
 	GetCharacterMovement()->MaxWalkSpeed = 800.f;
 	GetCharacterMovement()->MaxAcceleration = 1200.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 300.f;
@@ -35,22 +34,19 @@ ASBPlayer::ASBPlayer()
 	GetCharacterMovement()->BrakingDecelerationWalking = 1000.0f;
 	
 
-	// ½ºÇÁ¸µ ¾Ï ÄÄÆ÷³ÍÆ® »ý¼º
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->SetRelativeLocation(FVector(0.0f, ZoomOutCameraLoaction.Y, ZoomOutCameraLoaction.Z));
 	CameraBoom->TargetArmLength = ZoomOutCameraLoaction.X;
-	CameraBoom->bUsePawnControlRotation = true; // Ä«¸Þ¶ó°¡ ÄÁÆ®·Ñ·¯¿¡ ÀÇÇØ È¸ÀüµÇµµ·Ï	¼³Á¤
+	CameraBoom->bUsePawnControlRotation = true; // Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½Æ®ï¿½Ñ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½
 
-	// Ä«¸Þ¶ó ÄÄÆ÷³ÍÆ® »ý¼º
+	// Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);	// Ä«¸Þ¶ó°¡ ½ºÇÁ¸µ ¾Ï¿¡ ºÎÂøµÇµµ·Ï ¼³Á¤. USpringArmComponent::SocketName´Â "SpringEndPoint"·Î ½ºÇÁ¸µ ¾Ï ³¡ºÎºÐ¿¡ ºÎÂøµÇµµ·Ï ¼³Á¤
-	FollowCamera->bUsePawnControlRotation = false;	// Ä«¸Þ¶ó°¡ ÄÁÆ®·Ñ·¯¿¡ ÀÇÇØ È¸ÀüµÇÁö ¾Êµµ·Ï ¼³Á¤
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);	// Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. USpringArmComponent::SocketNameï¿½ï¿½ "SpringEndPoint"ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ÎºÐ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	FollowCamera->bUsePawnControlRotation = false;	// Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½Æ®ï¿½Ñ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-	// BuildSystem ÄÄÆ÷³ÍÆ® »ý¼º
-	BuildSystemComponent = CreateDefaultSubobject<UBuildSystemComponent>(TEXT("BuildSystem"));
-
-	// ¹è¿­ ÃÊ±âÈ­
+	// ï¿½è¿­ ï¿½Ê±ï¿½È­
 	WeaponQuickslot.SetNum(2);
 }
 
@@ -201,7 +197,7 @@ bool ASBPlayer::IsUnarmed() const
 	return bUnArmed || GetCurrentWeapon() == nullptr;
 }
 
-// TODO: ÀÌ°Å Á» ¹Ù²Ù±ä ÇØ¾ßÇÒ °Å °°À½.
+// TODO: ï¿½Ì°ï¿½ ï¿½ï¿½ ï¿½Ù²Ù±ï¿½ ï¿½Ø¾ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 FTransform ASBPlayer::GetLHIKTransform() const
 {
 	FTransform LHIKTransform;

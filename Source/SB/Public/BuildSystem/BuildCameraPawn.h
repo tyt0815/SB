@@ -42,9 +42,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	UCameraComponent* FollowCamera;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
-	class UBuildSystemComponent* BuildSystemComponent;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	class UFloatingPawnMovement* MovementComponent;
 
@@ -60,7 +57,7 @@ protected:
 	void SetInputMappingContext();
 	void TraceUnderMouseCursor();
 
-	// ÀÔ·Â BuildingÀº nullptrÀÌ¾î¼± ¾ÈµÈ´Ù.
+	// ï¿½Ô·ï¿½ Buildingï¿½ï¿½ nullptrï¿½Ì¾î¼± ï¿½ÈµÈ´ï¿½.
 	FVector CalculatePlacementLocation(ABuilding* Building);
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)

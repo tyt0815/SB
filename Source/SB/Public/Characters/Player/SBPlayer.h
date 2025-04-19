@@ -88,9 +88,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	UCameraComponent* FollowCamera;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
-	class UBuildSystemComponent* BuildSystemComponent;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera)
 	FVector ZoomOutCameraLoaction = FVector(500.0f, 0.0f, 120.0f);
 
