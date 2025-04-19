@@ -15,6 +15,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class AWeapon;
 class ABuildCameraPawn;
+class ABuildingCreater;
 struct FInputActionValue;
 
 USTRUCT(BlueprintType)
@@ -103,20 +104,23 @@ protected:
 	UPROPERTY(EditAnywhere, Category = BuildSystem)
 	TSubclassOf<ABuildCameraPawn> BuildCameraPawnClass;
 
+	UPROPERTY(EditAnywhere, Category = BuildSystem)
+	TSubclassOf<ABuildingCreater> BuildingCreaterClass;
+
 	TArray<AWeapon*> WeaponQuickslot;
 
 private:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-	void UseWeaponStarted();
-	void UseWeaponOngoing();
-	void UseWeaponCompleted();
-	void UseWeaponSpecific1();
-	void UseWeaponSpecific2();
-	void Zoom();
-	void SwitchToWeapon0();
-	void SwitchToWeapon1();
-	void SwitchToUnarmedState();
+	void MouseLTriggered();
+	void MouseLOngoing();
+	void MouseLCompleted();
+	void RTriggered();
+	void BTriggered();
+	void MouseRTriggered();
+	void Number1Triggered();
+	void Number2Triggered();
+	void Number3Triggered();
 	void SwitchWeapon(uint32 Index);
 	void EquipWeapon(uint32 Index);
 	void UnequipWeapon();
@@ -126,8 +130,8 @@ private:
 	void DettachWeapon(AWeapon* Weapon);
 	void ReloadEnd();
 	void EquipEnd();
-	void ToggleToBuildModeStarted();
-	void ToggleToTopDownBuildModeStarted();
+	void TabTriggered();
+	void CapsLockTriggered();
 	bool IsPlayingMontage(UAnimMontage* Montage) const;
 	bool IsPlayingFireMontage(AWeapon* Weapon) const;
 	bool IsPlayingEquipMontage(AWeapon* Weapon) const;
@@ -135,6 +139,7 @@ private:
 	void InitializePlayerController();
 	void TransferPlayerControllerPossessionToPawn(APawn* Pawn);
 	void SpawnBuildCameraPawn();
+	void SpawnBuildingCreater();
 
 	/*
 	* Enhanced Input
@@ -149,31 +154,25 @@ private:
 	UInputAction* MoveInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* UseWeaponInputAction;
+	TArray<UInputAction*> NumberInputActions;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* UseWeaponSpecific1InputAction;
+	UInputAction* MouseLInpuatAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* UseWeaponSpecific2InputAction;
+	UInputAction* RInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* ZoomInputAction;
+	UInputAction* BInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* SwitchWeapon0InputAction;
+	UInputAction* MouseRInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* SwitchWeapon1InputAction;
+	UInputAction* TabInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* SwitchToUnarmInputAction;
-
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* ToggleToBuildModeInputAction;
-
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* ToggleToTopDownViewBuildModeInputAction;
+	UInputAction* CapsLockInputAction;
 
 	/*
 	* Montages
@@ -186,6 +185,7 @@ private:
 	*/
 	
 	ABuildCameraPawn* BuildCameraPawn;
+	ABuildingCreater* BuildingCreater;
 	FName RightHandSocketName = "hand_r_Socket";
 	float JogScale = 1.0f;
 	float WalkScale = 0.4f;

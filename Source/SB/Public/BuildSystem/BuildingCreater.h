@@ -20,7 +20,7 @@ protected:
 
 public:	
 	UFUNCTION(BlueprintCallable)
-	void SetGridVisibility(bool bVisibility);
+	void SetGridVisibility(bool bVisibility, bool bForce = false);
 
 	UFUNCTION(BlueprintCallable)
 	void SetGridMaterial(UMaterialInterface* Material);
@@ -49,4 +49,7 @@ protected:
 	int CellExtentY = 10;
 
 	TArray<TArray<UDecalComponent*>> DecalComponents;
+
+private	:
+	bool bGridVisibility = true;
 };

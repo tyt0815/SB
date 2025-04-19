@@ -1,6 +1,7 @@
 #include "Characters/Player/SBPlayer.h"
 
 #include "BuildSystem/BuildCameraPawn.h"
+#include "BuildSystem/BuildingCreater.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "EnhancedInputComponent.h"
@@ -64,17 +65,26 @@ void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	{
 		EnhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::Move);
 		EnhancedInputComponent->BindAction(LookInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::Look);
-		EnhancedInputComponent->BindAction(ZoomInputAction, ETriggerEvent::Started, this, &ASBPlayer::Zoom);
-		EnhancedInputComponent->BindAction(UseWeaponInputAction, ETriggerEvent::Started, this, &ASBPlayer::UseWeaponStarted);
-		EnhancedInputComponent->BindAction(UseWeaponInputAction, ETriggerEvent::Ongoing, this, &ASBPlayer::UseWeaponOngoing);
-		EnhancedInputComponent->BindAction(UseWeaponInputAction, ETriggerEvent::Completed, this, &ASBPlayer::UseWeaponCompleted);
-		EnhancedInputComponent->BindAction(UseWeaponSpecific1InputAction, ETriggerEvent::Started, this, &ASBPlayer::UseWeaponSpecific1);
-		EnhancedInputComponent->BindAction(UseWeaponSpecific2InputAction, ETriggerEvent::Started, this, &ASBPlayer::UseWeaponSpecific2);
-		EnhancedInputComponent->BindAction(SwitchWeapon0InputAction, ETriggerEvent::Started, this, &ASBPlayer::SwitchToWeapon0);
-		EnhancedInputComponent->BindAction(SwitchWeapon1InputAction, ETriggerEvent::Started, this, &ASBPlayer::SwitchToWeapon1);
-		EnhancedInputComponent->BindAction(SwitchToUnarmInputAction, ETriggerEvent::Started, this, &ASBPlayer::SwitchToUnarmedState);
-		EnhancedInputComponent->BindAction(ToggleToBuildModeInputAction, ETriggerEvent::Started, this, &ASBPlayer::ToggleToBuildModeStarted);
-		EnhancedInputComponent->BindAction(ToggleToTopDownViewBuildModeInputAction, ETriggerEvent::Started, this, &ASBPlayer::ToggleToTopDownBuildModeStarted);
+		EnhancedInputComponent->BindAction(MouseRInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::MouseRTriggered);
+		EnhancedInputComponent->BindAction(MouseLInpuatAction, ETriggerEvent::Triggered, this, &ASBPlayer::MouseLTriggered);
+		EnhancedInputComponent->BindAction(MouseLInpuatAction, ETriggerEvent::Ongoing, this, &ASBPlayer::MouseLOngoing);
+		EnhancedInputComponent->BindAction(MouseLInpuatAction, ETriggerEvent::Completed, this, &ASBPlayer::MouseLCompleted);
+		EnhancedInputComponent->BindAction(RInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::RTriggered);
+		EnhancedInputComponent->BindAction(BInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::BTriggered);
+		EnhancedInputComponent->BindAction(TabInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::TabTriggered);
+		EnhancedInputComponent->BindAction(CapsLockInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::CapsLockTriggered);
+		if (NumberInputActions.IsValidIndex(1) && NumberInputActions[1])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[1], ETriggerEvent::Triggered, this, &ASBPlayer::Number1Triggered);
+		}
+		if (NumberInputActions.IsValidIndex(2) && NumberInputActions[2])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[2], ETriggerEvent::Triggered, this, &ASBPlayer::Number2Triggered);
+		}
+		if (NumberInputActions.IsValidIndex(3) && NumberInputActions[3])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[3], ETriggerEvent::Triggered, this, &ASBPlayer::Number3Triggered);
+		}
 	}
 }
 
@@ -107,6 +117,8 @@ void ASBPlayer::BeginPlay()
 
 		SpawnBuildCameraPawn();
 	}
+
+	SpawnBuildingCreater();
 }
 
 void ASBPlayer::StockWeaponInQuickSlot(AWeapon* Weapon, uint32 Index)
@@ -285,7 +297,7 @@ void ASBPlayer::Look(const FInputActionValue& Value)
 	}
 }
 
-void ASBPlayer::UseWeaponStarted()
+void ASBPlayer::MouseLTriggered()
 {
 	if (IsFireReady()) 
 	{
@@ -293,7 +305,7 @@ void ASBPlayer::UseWeaponStarted()
 	}
 }
 
-void ASBPlayer::UseWeaponOngoing()
+void ASBPlayer::MouseLOngoing()
 {
 	if (IsFireReady())
 	{
@@ -301,7 +313,7 @@ void ASBPlayer::UseWeaponOngoing()
 	}
 }
 
-void ASBPlayer::UseWeaponCompleted()
+void ASBPlayer::MouseLCompleted()
 {
 	if (IsFireReady())
 	{
@@ -309,7 +321,7 @@ void ASBPlayer::UseWeaponCompleted()
 	}
 }
 
-void ASBPlayer::UseWeaponSpecific1()
+void ASBPlayer::RTriggered()
 {
 	if (!IsUnarmed() && GetUpperBodyState() == EUpperBodyState::EUBS_Idle)
 	{
@@ -317,7 +329,7 @@ void ASBPlayer::UseWeaponSpecific1()
 	}
 }
 
-void ASBPlayer::UseWeaponSpecific2()
+void ASBPlayer::BTriggered()
 {
 	if (!IsUnarmed() && GetUpperBodyState() == EUpperBodyState::EUBS_Idle)
 	{
@@ -325,7 +337,7 @@ void ASBPlayer::UseWeaponSpecific2()
 	}
 }
 
-void ASBPlayer::Zoom()
+void ASBPlayer::MouseRTriggered()
 {
 	if (IsUnarmed() || ZoomState == ECharacterZoomState::ECZS_Zooming)
 	{
@@ -342,17 +354,17 @@ void ASBPlayer::Zoom()
 	}
 }
 
-void ASBPlayer::SwitchToWeapon0()
+void ASBPlayer::Number1Triggered()
 {
 	SwitchWeapon(0);
 }
 
-void ASBPlayer::SwitchToWeapon1()
+void ASBPlayer::Number2Triggered()
 {
 	SwitchWeapon(1);
 }
 
-void ASBPlayer::SwitchToUnarmedState()
+void ASBPlayer::Number3Triggered()
 {
 	UnequipWeapon();
 	ZoomOut();
@@ -439,7 +451,7 @@ void ASBPlayer::EquipEnd()
 	UpperBodyState = EUpperBodyState::EUBS_Idle;
 }
 
-void ASBPlayer::ToggleToBuildModeStarted()
+void ASBPlayer::TabTriggered()
 {
 	if (ControllMode == ECharacterControllMode::ECCM_Build)
 	{
@@ -451,7 +463,7 @@ void ASBPlayer::ToggleToBuildModeStarted()
 	}
 }
 
-void ASBPlayer::ToggleToTopDownBuildModeStarted()
+void ASBPlayer::CapsLockTriggered()
 {
 	if (ControllMode == ECharacterControllMode::ECCM_Build)
 	{
@@ -543,5 +555,18 @@ void ASBPlayer::SpawnBuildCameraPawn()
 	if (BuildCameraPawn == nullptr)
 	{
 		SCREEN_LOG_NONE_KEY("ABuildCameraPawn spawn failed.");
+	}
+}
+
+void ASBPlayer::SpawnBuildingCreater()
+{
+	UWorld *World = GetWorld();
+	if (World && BuildingCreaterClass)
+	{
+		BuildingCreater = World->SpawnActor<ABuildingCreater>(BuildingCreaterClass);
+		if (BuildingCreater)
+		{
+			BuildingCreater->SetGridVisibility(false);
+		}
 	}
 }

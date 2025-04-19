@@ -26,7 +26,7 @@ ABuildingCreater::ABuildingCreater()
 		}
 	}
 
-	SetGridVisibility(false);
+	SetGridVisibility(false ,true);
 }
 
 void ABuildingCreater::Tick(float DeltaTime)
@@ -42,13 +42,17 @@ void ABuildingCreater::BeginPlay()
 	SetGridMaterial(ValidCellMaterial);
 }
 
-void ABuildingCreater::SetGridVisibility(bool bVisibility)
+void ABuildingCreater::SetGridVisibility(bool bVisibility, bool bForce)
 {
-	for (auto& Row : DecalComponents)
+	if (bVisibility != bGridVisibility || bForce)
 	{
-		for (auto& Decal : Row)
+		bGridVisibility = bVisibility;
+		for (auto& Row : DecalComponents)
 		{
-			Decal->SetVisibility(bVisibility);
+			for (auto& Decal : Row)
+			{
+				Decal->SetVisibility(bVisibility);
+			}
 		}
 	}
 }
