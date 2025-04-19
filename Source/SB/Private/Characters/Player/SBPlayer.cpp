@@ -48,7 +48,7 @@ ASBPlayer::ASBPlayer()
 	FollowCamera->bUsePawnControlRotation = false;	// ī�޶� ��Ʈ�ѷ��� ���� ȸ������ �ʵ��� ����
 
 	// �迭 �ʱ�ȭ
-	WeaponQuickslot.SetNum(2);
+	WeaponQuickslot.SetNum(3);
 }
 
 void ASBPlayer::Tick(float DeltaTime)
@@ -65,25 +65,25 @@ void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	{
 		EnhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::Move);
 		EnhancedInputComponent->BindAction(LookInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::Look);
-		EnhancedInputComponent->BindAction(MouseRInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::MouseRTriggered);
-		EnhancedInputComponent->BindAction(MouseLInpuatAction, ETriggerEvent::Triggered, this, &ASBPlayer::MouseLTriggered);
+		EnhancedInputComponent->BindAction(MouseRInputAction, ETriggerEvent::Started, this, &ASBPlayer::MouseRStarted);
+		EnhancedInputComponent->BindAction(MouseLInpuatAction, ETriggerEvent::Started, this, &ASBPlayer::MouseLStarted);
 		EnhancedInputComponent->BindAction(MouseLInpuatAction, ETriggerEvent::Ongoing, this, &ASBPlayer::MouseLOngoing);
 		EnhancedInputComponent->BindAction(MouseLInpuatAction, ETriggerEvent::Completed, this, &ASBPlayer::MouseLCompleted);
-		EnhancedInputComponent->BindAction(RInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::RTriggered);
-		EnhancedInputComponent->BindAction(BInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::BTriggered);
-		EnhancedInputComponent->BindAction(TabInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::TabTriggered);
-		EnhancedInputComponent->BindAction(CapsLockInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::CapsLockTriggered);
+		EnhancedInputComponent->BindAction(RInputAction, ETriggerEvent::Started, this, &ASBPlayer::RStarted);
+		EnhancedInputComponent->BindAction(BInputAction, ETriggerEvent::Started, this, &ASBPlayer::BStarted);
+		EnhancedInputComponent->BindAction(TabInputAction, ETriggerEvent::Started, this, &ASBPlayer::TabStarted);
+		EnhancedInputComponent->BindAction(CapsLockInputAction, ETriggerEvent::Started, this, &ASBPlayer::CapsLockStarted);
 		if (NumberInputActions.IsValidIndex(1) && NumberInputActions[1])
 		{
-			EnhancedInputComponent->BindAction(NumberInputActions[1], ETriggerEvent::Triggered, this, &ASBPlayer::Number1Triggered);
+			EnhancedInputComponent->BindAction(NumberInputActions[1], ETriggerEvent::Started, this, &ASBPlayer::Number1Started);
 		}
 		if (NumberInputActions.IsValidIndex(2) && NumberInputActions[2])
 		{
-			EnhancedInputComponent->BindAction(NumberInputActions[2], ETriggerEvent::Triggered, this, &ASBPlayer::Number2Triggered);
+			EnhancedInputComponent->BindAction(NumberInputActions[2], ETriggerEvent::Started, this, &ASBPlayer::Number2Started);
 		}
 		if (NumberInputActions.IsValidIndex(3) && NumberInputActions[3])
 		{
-			EnhancedInputComponent->BindAction(NumberInputActions[3], ETriggerEvent::Triggered, this, &ASBPlayer::Number3Triggered);
+			EnhancedInputComponent->BindAction(NumberInputActions[3], ETriggerEvent::Started, this, &ASBPlayer::Number3Started);
 		}
 	}
 }
@@ -100,21 +100,8 @@ void ASBPlayer::BeginPlay()
 	{
 		FActorSpawnParameters WeaponSpawnParameters;
 		WeaponSpawnParameters.Owner = this;
-		if (WeaponClass0)
-		{
-			StockWeaponInQuickSlot(
-				GetWorld()->SpawnActor<AWeapon>(WeaponClass0, WeaponSpawnParameters),
-				0
-			);
-		}
-		if (WeaponClass1)
-		{
-			StockWeaponInQuickSlot(
-				GetWorld()->SpawnActor<AWeapon>(WeaponClass1, WeaponSpawnParameters),
-				1
-			);
-		}
-
+		SpawnAndStockWeapon(1);
+		SpawnAndStockWeapon(2);
 		SpawnBuildCameraPawn();
 	}
 
@@ -297,7 +284,7 @@ void ASBPlayer::Look(const FInputActionValue& Value)
 	}
 }
 
-void ASBPlayer::MouseLTriggered()
+void ASBPlayer::MouseLStarted()
 {
 	if (IsFireReady()) 
 	{
@@ -321,7 +308,7 @@ void ASBPlayer::MouseLCompleted()
 	}
 }
 
-void ASBPlayer::RTriggered()
+void ASBPlayer::RStarted()
 {
 	if (!IsUnarmed() && GetUpperBodyState() == EUpperBodyState::EUBS_Idle)
 	{
@@ -329,7 +316,7 @@ void ASBPlayer::RTriggered()
 	}
 }
 
-void ASBPlayer::BTriggered()
+void ASBPlayer::BStarted()
 {
 	if (!IsUnarmed() && GetUpperBodyState() == EUpperBodyState::EUBS_Idle)
 	{
@@ -337,7 +324,7 @@ void ASBPlayer::BTriggered()
 	}
 }
 
-void ASBPlayer::MouseRTriggered()
+void ASBPlayer::MouseRStarted()
 {
 	if (IsUnarmed() || ZoomState == ECharacterZoomState::ECZS_Zooming)
 	{
@@ -354,17 +341,26 @@ void ASBPlayer::MouseRTriggered()
 	}
 }
 
-void ASBPlayer::Number1Triggered()
+void ASBPlayer::Number1Started()
 {
-	SwitchWeapon(0);
+	switch (ControllMode)
+	{
+	case ECharacterControllMode::ECCM_Combat:
+		SwitchWeapon(1);
+		break;
+
+	case ECharacterControllMode::ECCM_Build:
+		SwitchBuildPreviewMesh(1);
+		break;
+	}
 }
 
-void ASBPlayer::Number2Triggered()
+void ASBPlayer::Number2Started()
 {
-	SwitchWeapon(1);
+	SwitchWeapon(2);
 }
 
-void ASBPlayer::Number3Triggered()
+void ASBPlayer::Number3Started()
 {
 	UnequipWeapon();
 	ZoomOut();
@@ -378,6 +374,11 @@ void ASBPlayer::SwitchWeapon(uint32 Index)
 		EquipWeapon(Index);
 		PlayEquipMontage(GetCurrentWeapon());
 	}
+}
+
+void ASBPlayer::SwitchBuildPreviewMesh(uint32 Index)
+{
+	// TODO
 }
 
 void ASBPlayer::EquipWeapon(uint32 Index)
@@ -398,7 +399,7 @@ void ASBPlayer::UnequipWeapon()
 	{
 		GetCurrentWeapon()->StopMontage();
 	}
-	CurrentWeaponIndex = 3;
+	CurrentWeaponIndex = 0;
 }
 
 void ASBPlayer::SetWeaponVisibility(AWeapon* Weapon, bool bVisibility, bool bEffect)
@@ -451,7 +452,7 @@ void ASBPlayer::EquipEnd()
 	UpperBodyState = EUpperBodyState::EUBS_Idle;
 }
 
-void ASBPlayer::TabTriggered()
+void ASBPlayer::TabStarted()
 {
 	if (ControllMode == ECharacterControllMode::ECCM_Build)
 	{
@@ -463,7 +464,7 @@ void ASBPlayer::TabTriggered()
 	}
 }
 
-void ASBPlayer::CapsLockTriggered()
+void ASBPlayer::CapsLockStarted()
 {
 	if (ControllMode == ECharacterControllMode::ECCM_Build)
 	{
@@ -568,5 +569,15 @@ void ASBPlayer::SpawnBuildingCreater()
 		{
 			BuildingCreater->SetGridVisibility(false);
 		}
+	}
+}
+
+void ASBPlayer::SpawnAndStockWeapon(uint32 i)
+{
+	if (WeaponClasses.IsValidIndex(i) && WeaponClasses[i])
+	{
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.Owner = this;
+		StockWeaponInQuickSlot(GetWorld()->SpawnActor<AWeapon>(WeaponClasses[i], SpawnParameters), i);
 	}
 }

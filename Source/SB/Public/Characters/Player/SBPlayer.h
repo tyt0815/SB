@@ -96,10 +96,7 @@ protected:
 	FVector ZoomInCameraLoaction = FVector(200.0f, 70.0f, 70.0f);
 
 	UPROPERTY(EditAnywhere, Category = Weapon)
-	TSubclassOf<AWeapon> WeaponClass0;
-
-	UPROPERTY(EditAnywhere, Category = Weapon)
-	TSubclassOf<AWeapon> WeaponClass1;
+	TArray<TSubclassOf<AWeapon>> WeaponClasses;
 
 	UPROPERTY(EditAnywhere, Category = BuildSystem)
 	TSubclassOf<ABuildCameraPawn> BuildCameraPawnClass;
@@ -112,16 +109,17 @@ protected:
 private:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-	void MouseLTriggered();
+	void MouseLStarted();
 	void MouseLOngoing();
 	void MouseLCompleted();
-	void RTriggered();
-	void BTriggered();
-	void MouseRTriggered();
-	void Number1Triggered();
-	void Number2Triggered();
-	void Number3Triggered();
+	void RStarted();
+	void BStarted();
+	void MouseRStarted();
+	void Number1Started();
+	void Number2Started();
+	void Number3Started();
 	void SwitchWeapon(uint32 Index);
+	void SwitchBuildPreviewMesh(uint32 Index);
 	void EquipWeapon(uint32 Index);
 	void UnequipWeapon();
 	void SetWeaponVisibility(AWeapon* Weapon, bool bVisibility, bool bEffect);
@@ -130,8 +128,8 @@ private:
 	void DettachWeapon(AWeapon* Weapon);
 	void ReloadEnd();
 	void EquipEnd();
-	void TabTriggered();
-	void CapsLockTriggered();
+	void TabStarted();
+	void CapsLockStarted();
 	bool IsPlayingMontage(UAnimMontage* Montage) const;
 	bool IsPlayingFireMontage(AWeapon* Weapon) const;
 	bool IsPlayingEquipMontage(AWeapon* Weapon) const;
@@ -140,6 +138,7 @@ private:
 	void TransferPlayerControllerPossessionToPawn(APawn* Pawn);
 	void SpawnBuildCameraPawn();
 	void SpawnBuildingCreater();
+	void SpawnAndStockWeapon(uint32 i);
 
 	/*
 	* Enhanced Input
@@ -190,7 +189,7 @@ private:
 	float JogScale = 1.0f;
 	float WalkScale = 0.4f;
 	float MovementSpeedScale;
-	uint16 CurrentWeaponIndex = 3;
+	uint16 CurrentWeaponIndex = 0;
 	bool bUnArmed = true;
 	EUpperBodyState UpperBodyState = EUpperBodyState::EUBS_Idle;
 	ECharacterControllMode ControllMode = ECharacterControllMode::ECCM_Combat;
