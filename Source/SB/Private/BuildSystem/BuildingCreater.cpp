@@ -11,18 +11,16 @@ ABuildingCreater::ABuildingCreater()
 	SetRootComponent(ArrowComponent);
 
 	DecalComponents.SetNum(1 + 2 * CellExtentX);
+	bValidCell.SetNum(1 + 2 * CellExtentX);
 	for (int i = 0; i <= 2 * CellExtentX; ++i)
 	{
 		DecalComponents[i].SetNum(1 + 2 * CellExtentY);
+		bValidCell[i].SetNum(1 + 2 * CellExtentY);
 		for (int j = 0; j <= 2 * CellExtentY; ++j)
 		{
 			DecalComponents[i][j] = CreateDefaultSubobject<UDecalComponent>(FName(FString::Printf(TEXT("Decal_%d_%d"), i, j)));
 			DecalComponents[i][j]->SetupAttachment(GetRootComponent());
-			FVector Location;
-			Location.X = CELL_SIZE * (i - CellExtentX);
-			Location.Y = CELL_SIZE * (j - CellExtentY);
-			Location.Z = 0.0f;
-			DecalComponents[i][j]->SetRelativeLocation(Location);
+			DecalComponents[i][j]->SetRelativeLocation(GetCellLocation(i, j));
 			DecalComponents[i][j]->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
 			DecalComponents[i][j]->DecalSize = FVector(50.0f, CELL_SIZE / 2.0f, CELL_SIZE / 2.0f);
 		}
@@ -34,7 +32,6 @@ ABuildingCreater::ABuildingCreater()
 void ABuildingCreater::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void ABuildingCreater::BeginPlay()
@@ -56,6 +53,7 @@ void ABuildingCreater::SetPreviewBuilding(TSubclassOf<ABuilding> BuildingClass)
 		{
 			PreviewBuilding->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 			PreviewBuilding->SetAsPreview(PreviewMaterial);
+			UpdateBuildableState();
 			HiddenInGame(false);
 		}
 	}
@@ -63,13 +61,16 @@ void ABuildingCreater::SetPreviewBuilding(TSubclassOf<ABuilding> BuildingClass)
 
 void ABuildingCreater::CreateBuilding()
 {
-	if (PreviewBuilding && PreviewBuildingClass)
+	if (bBuildable)
 	{
-		FActorSpawnParameters SpawnParameters;
-		GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClass, PreviewBuilding->GetTransform());
+		if (PreviewBuilding && PreviewBuildingClass)
+		{
+			FActorSpawnParameters SpawnParameters;
+			GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClass, PreviewBuilding->GetTransform());
+		}
+		DestroyPreviewBuilding();
+		HiddenInGame(true);
 	}
-	DestroyPreviewBuilding();
-	HiddenInGame(true);
 }
 
 void ABuildingCreater::DestroyPreviewBuilding()
@@ -120,7 +121,22 @@ void ABuildingCreater::SnapLocation(FVector WorldLocation)
 	{
 		SnappedLocation.Y -= CELL_SIZE * 0.5f;
 	}
-	SetActorLocation(SnappedLocation);
+	FVector CurrLocation = GetActorLocation();
+	if (CurrLocation != SnappedLocation)
+	{
+		SetActorLocation(SnappedLocation);
+		UpdateValidCells();
+		UpdateBuildableState();
+	}
+}
+
+FVector ABuildingCreater::GetCellLocation(int i, int j)
+{
+	FVector Location;
+	Location.X = CELL_SIZE * (i - CellExtentX);
+	Location.Y = CELL_SIZE * (j - CellExtentY);
+	Location.Z = 0.0f;
+	return Location;
 }
 
 void ABuildingCreater::SetGridVisibility(bool bVisibility, bool bForce)
@@ -147,4 +163,31 @@ void ABuildingCreater::SetGridMaterial(UMaterialInterface* Material)
 			Decal->SetDecalMaterial(Material);
 		}
 	}
+}
+
+void ABuildingCreater::UpdateValidCells()
+{
+	// TODO
+	for (int i = 0; i < bValidCell.Num(); ++i)
+	{
+		for (int j = 0; j < bValidCell[i].Num(); ++j)
+		{
+			bValidCell[i][j] = true;
+		}
+	}
+}
+
+void ABuildingCreater::UpdateBuildableState()
+{
+	if (PreviewBuilding)
+	{
+		for (int i = 0; i < PreviewBuilding->GetCellExtentX(); ++i)
+		{
+			for (int j = 0; j < PreviewBuilding->GetCellExtentY(); ++j)
+			{
+				
+			}
+		}
+	}
+	bBuildable = true;
 }

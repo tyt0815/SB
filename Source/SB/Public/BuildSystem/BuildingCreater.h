@@ -24,6 +24,7 @@ public:
 	void DestroyPreviewBuilding();
 	void HiddenInGame(bool bNew);
 	void SnapLocation(FVector WorldLocation);
+	FVector GetCellLocation(int i, int j);
 
 	UFUNCTION(BlueprintCallable)
 	void SetGridVisibility(bool bVisibility, bool bForce = false);
@@ -53,7 +54,12 @@ protected:
 	TArray<TArray<UDecalComponent*>> DecalComponents;
 
 private	:
+	void UpdateValidCells();
+	void UpdateBuildableState();
+
 	TSubclassOf<ABuilding> PreviewBuildingClass;
+	TArray<TArray<bool>> bValidCell;
 	ABuilding* PreviewBuilding;
 	bool bGridVisibility = true;
+	bool bBuildable;
 };

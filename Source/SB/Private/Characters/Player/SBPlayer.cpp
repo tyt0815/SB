@@ -3,6 +3,7 @@
 #include "BuildSystem/BuildCameraPawn.h"
 #include "BuildSystem/BuildingCreater.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -634,14 +635,26 @@ void ASBPlayer::SetBuildingCreaterLocation()
 		HitResult,
 		true
 	);
-	FVector Location;
+	FVector Location = GetActorLocation() - (FVector::ZAxisVector * GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+	
+	if(!HitResult.GetActor())
+	{
+		FVector ToGround = End - FVector::ZAxisVector * (500 + End.Z - GetActorLocation().Z);
+		UKismetSystemLibrary::LineTraceSingle(
+			this,
+			End,
+			ToGround,
+			UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility),
+			false,
+			ActorsToIgnore,
+			EDrawDebugTrace::None,
+			HitResult,
+			true
+		);
+	}
 	if (HitResult.GetActor())
 	{
 		Location = HitResult.ImpactPoint;
 	}
-	else
-	{
-
-	}
-	BuildingCreater->SnapLocation(HitResult.ImpactPoint);
+	BuildingCreater->SnapLocation(Location);
 }
