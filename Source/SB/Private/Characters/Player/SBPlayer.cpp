@@ -624,27 +624,31 @@ void ASBPlayer::SetBuildingCreaterLocation()
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 	FHitResult HitResult;
-	UKismetSystemLibrary::LineTraceSingle(
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic));
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
+	UKismetSystemLibrary::LineTraceSingleForObjects(
 		this,
 		Start,
 		End,
-		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility),
+		ObjectTypes,
 		false,
 		ActorsToIgnore,
 		EDrawDebugTrace::None,
 		HitResult,
 		true
 	);
+
 	FVector Location = GetActorLocation() - (FVector::ZAxisVector * GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
 	
 	if(!HitResult.GetActor())
 	{
 		FVector ToGround = End - FVector::ZAxisVector * (500 + End.Z - GetActorLocation().Z);
-		UKismetSystemLibrary::LineTraceSingle(
+		UKismetSystemLibrary::LineTraceSingleForObjects(
 			this,
 			End,
 			ToGround,
-			UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility),
+			ObjectTypes,
 			false,
 			ActorsToIgnore,
 			EDrawDebugTrace::None,
