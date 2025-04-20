@@ -1,8 +1,9 @@
 #include "BuildSystem/BuildingCreater.h"
 #include "BuildSystem/Building.h"
+#include "BuildSystem/BuildSystem.h"
 #include "Components/ArrowComponent.h"
 #include "Components/DecalComponent.h"
-#include "BuildSystem/BuildSystemDefines.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 ABuildingCreater::ABuildingCreater()
 {
@@ -46,14 +47,13 @@ void ABuildingCreater::SetPreviewBuilding(TSubclassOf<ABuilding> BuildingClass)
 	if (BuildingClass)
 	{
 		DestroyPreviewBuilding();
-
 		PreviewBuildingClass = BuildingClass;
 		PreviewBuilding = GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClass);
 		if (PreviewBuilding)
 		{
 			PreviewBuilding->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-			PreviewBuilding->SetAsPreview(PreviewMaterial);
-			UpdateBuildableState();
+			PreviewBuilding->SetAsPreview();
+			UpdateBuildableStateAndSetPreviewBuildingMaterial();
 			HiddenInGame(false);
 		}
 	}
@@ -68,8 +68,7 @@ void ABuildingCreater::CreateBuilding()
 			FActorSpawnParameters SpawnParameters;
 			GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClass, PreviewBuilding->GetTransform());
 		}
-		DestroyPreviewBuilding();
-		HiddenInGame(true);
+		CancelPreview();
 	}
 }
 
@@ -100,34 +99,21 @@ void ABuildingCreater::HiddenInGame(bool bNew)
 
 void ABuildingCreater::SnapLocation(FVector WorldLocation)
 {
-	int XIndex = WorldLocation.X / CELL_SIZE;
-	int YIndex = WorldLocation.Y / CELL_SIZE;
-	FVector SnappedLocation = WorldLocation;
-	SnappedLocation.X = CELL_SIZE * XIndex;
-	SnappedLocation.Y = CELL_SIZE * YIndex;
-	if (WorldLocation.X >= 0)
-	{
-		SnappedLocation.X += CELL_SIZE * 0.5f;
-	}
-	else
-	{
-		SnappedLocation.X -= CELL_SIZE * 0.5f;
-	}
-	if (WorldLocation.Y >= 0)
-	{
-		SnappedLocation.Y += CELL_SIZE * 0.5f;
-	}
-	else
-	{
-		SnappedLocation.Y -= CELL_SIZE * 0.5f;
-	}
+	FVector SnappedLocation = BuildSystem::SnapLocationXY(WorldLocation);
+	
 	FVector CurrLocation = GetActorLocation();
 	if (CurrLocation != SnappedLocation)
 	{
 		SetActorLocation(SnappedLocation);
 		UpdateValidCells();
-		UpdateBuildableState();
+		UpdateBuildableStateAndSetPreviewBuildingMaterial();
 	}
+}
+
+void ABuildingCreater::CancelPreview()
+{
+	DestroyPreviewBuilding();
+	HiddenInGame(true);
 }
 
 FVector ABuildingCreater::GetCellLocation(int i, int j)
@@ -181,13 +167,62 @@ void ABuildingCreater::UpdateBuildableState()
 {
 	if (PreviewBuilding)
 	{
-		for (int i = 0; i < PreviewBuilding->GetCellExtentX(); ++i)
+		FIntVector Extent = PreviewBuilding->GetCellExtent();
+		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.Add(this);
+		ActorsToIgnore.Add(PreviewBuilding);
+		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel2));
+		for (int i = -Extent.X + 1; i < Extent.X; ++i)
 		{
-			for (int j = 0; j < PreviewBuilding->GetCellExtentY(); ++j)
+			for (int j = -Extent.Y + 1; j < Extent.Y; ++j)
 			{
-				
+				FVector Location = PreviewBuilding->GetActorLocation();
+				Location.X += i * CELL_SIZE;
+				Location.Y += j * CELL_SIZE;
+				FVector Top = Location + FVector::ZAxisVector * PreviewBuilding->GetHalfHeight();
+				FVector Bottom = Location - FVector::ZAxisVector * PreviewBuilding->GetHalfHeight();
+				FHitResult HitResult;
+				UKismetSystemLibrary::LineTraceSingleForObjects(
+					this,
+					Top,
+					Bottom,
+					ObjectTypes,
+					false,
+					ActorsToIgnore,
+					EDrawDebugTrace::None,
+					HitResult,
+					true
+				);
+				if (HitResult.GetActor())
+				{
+					bBuildable = false;
+					return;
+				}
 			}
 		}
 	}
 	bBuildable = true;
+}
+
+void ABuildingCreater::SetPreviewBuildingMaterial(UMaterialInterface* Material)
+{
+	if (PreviewBuilding && Material)
+	{
+		PreviewBuilding->SetAllMaterials(Material);
+	}
+}
+
+void ABuildingCreater::UpdateBuildableStateAndSetPreviewBuildingMaterial()
+{
+	UpdateBuildableState();
+	if (bBuildable)
+	{
+		SetPreviewBuildingMaterial(ValidPreviewMaterial);
+	}
+	else
+	{
+		SetPreviewBuildingMaterial(InvalidPreviewMaterial);
+	}
+	
 }

@@ -487,7 +487,7 @@ void ASBPlayer::TabStarted()
 {
 	if (ControllMode == ECharacterControllMode::ECCM_Build)
 	{
-		BuildingCreater->DestroyPreviewBuilding();
+		BuildingCreater->CancelPreview();
 		ControllMode = ECharacterControllMode::ECCM_Combat;
 	}
 	else
@@ -507,6 +507,7 @@ void ASBPlayer::CapsLockStarted()
 		}
 		if (BuildCameraPawn)
 		{
+			BuildingCreater->CancelPreview();
 			TransferPlayerControllerPossessionToPawn(BuildCameraPawn);
 			BuildCameraPawn->OnPlayerPossessStarted();
 			GetCharacterMovement()->StopMovementImmediately();

@@ -21,34 +21,37 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	virtual void OnConstruction(const FTransform& Transform) override;
 	void OnMouseHoverStarted();
 	void OnMouseHoverEnded();
 	void OnSelected();
 	void OnDeselected();
 	float GetZOffset() const;
+	float GetHalfWidth() const;
+	float GetHalfDepth() const;
+	float GetHalfHeight() const;
+	float GetWidth() const;
+	float GetDepth() const;
+	float GetHeight() const;
 	void SetVisibility(bool bVisibility);
-	void SetAsPreview(UMaterialInterface* Material);
+	void SetAsPreview();
+	void SetAllMaterials(UMaterialInterface* Material);
+
+	UFUNCTION(BlueprintCallable, Category = "Building")
+	void SnapLocation(FVector WorldLocation);
 
 
 protected:
-
-	UFUNCTION(BlueprintCallable, Category = Building)
-	void SetBoxComponentExtents();
+	void InitializeBuildBlocker();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	UBoxComponent* BoxComponent;
+	UBoxComponent* BuildBlocker;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* Mesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Building)
-	int CellExtentX = 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Building)
-	int CellExtentY = 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Building)
-	int CellExtentZ = 1;
+	FIntVector CellExtent = FIntVector(1, 1, 1);
 
 	UPROPERTY(BlueprintReadOnly, Category = Building)
 	bool bSelected = false;
@@ -63,20 +66,12 @@ public:
 	{
 		return Mesh;
 	}
-	FORCEINLINE UBoxComponent* GetBoxComponent() const
+	FORCEINLINE UBoxComponent* GetBuildBlocker() const
 	{
-		return BoxComponent;
+		return BuildBlocker;
 	}
-	FORCEINLINE int GetCellExtentX() const
+	FORCEINLINE FIntVector GetCellExtent() const
 	{
-		return CellExtentX;
-	}
-	FORCEINLINE int GetCellExtentY() const
-	{
-		return CellExtentY;
-	}
-	FORCEINLINE int GetCellExtentZ() const
-	{
-		return CellExtentZ;
+		return CellExtent;
 	}
 };

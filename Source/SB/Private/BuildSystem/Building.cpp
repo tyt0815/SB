@@ -1,26 +1,17 @@
 #include "BuildSystem/Building.h"
-#include "BuildSystem/BuildSystemDefines.h"
+#include "BuildSystem/BuildSystem.h"
 #include "Components/BoxComponent.h"
 #include "SB/DebugMacro.h"
 
 ABuilding::ABuilding()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	BoxComponent = CreateDefaultSubobject<UBoxComponent>("Box");
-	SetRootComponent(BoxComponent);
-	BoxComponent->SetCollisionObjectType(UEngineTypes::ConvertToCollisionChannel(EObjectTypeQuery::ObjectTypeQuery1));
-	BoxComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	BoxComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-	BoxComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
+	BuildBlocker = CreateDefaultSubobject<UBoxComponent>("BuildBlocker");
+	BuildBlocker->SetCollisionProfileName("BuildBlocker");
+	SetRootComponent(BuildBlocker);
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
-	Mesh->SetupAttachment(BoxComponent);
-	BoxComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	Mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Block);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+	Mesh->SetCollisionProfileName("Building");
+	Mesh->SetupAttachment(BuildBlocker);
 }
 
 
@@ -33,7 +24,12 @@ void ABuilding::Tick(float DeltaTime)
 void ABuilding::BeginPlay()
 {
 	Super::BeginPlay();
-	
+}
+
+void ABuilding::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	InitializeBuildBlocker();
 }
 
 void ABuilding::OnMouseHoverStarted()
@@ -66,7 +62,37 @@ void ABuilding::OnDeselected()
 
 float ABuilding::GetZOffset() const
 {
-	return BoxComponent->GetScaledBoxExtent().Z;
+	return BuildBlocker->GetScaledBoxExtent().Z;
+}
+
+float ABuilding::GetHalfWidth() const
+{
+	return BuildBlocker->GetScaledBoxExtent().X;
+}
+
+float ABuilding::GetHalfDepth() const
+{
+	return BuildBlocker->GetScaledBoxExtent().Y;
+}
+
+float ABuilding::GetHalfHeight() const
+{
+	return BuildBlocker->GetScaledBoxExtent().Z;
+}
+
+float ABuilding::GetWidth() const
+{
+	return GetHalfWidth() * 2;
+}
+
+float ABuilding::GetDepth() const
+{
+	return GetHalfDepth() * 2;
+}
+
+float ABuilding::GetHeight() const
+{
+	return GetHalfHeight() * 2;
 }
 
 void ABuilding::SetVisibility(bool bVisibility)
@@ -75,12 +101,17 @@ void ABuilding::SetVisibility(bool bVisibility)
 	SetActorLocation(FVector(0.0f, 0.0f, 100000.0f));
 }
 
-void ABuilding::SetAsPreview(UMaterialInterface* Material)
+void ABuilding::SetAsPreview()
 {
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	BoxComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	BuildBlocker->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Mesh->bReceivesDecals = false;
 	SetActorRelativeLocation(FVector(0.0f, 0.0f, GetZOffset()));
+	
+}
+
+void ABuilding::SetAllMaterials(UMaterialInterface* Material)
+{
 	if (Material)
 	{
 		int MaterialCounts = Mesh->GetNumMaterials();
@@ -91,14 +122,19 @@ void ABuilding::SetAsPreview(UMaterialInterface* Material)
 	}
 }
 
-void ABuilding::SetBoxComponentExtents()
+void ABuilding::SnapLocation(FVector WorldLocation)
+{
+	SetActorLocation(BuildSystem::SnapLocationXY(WorldLocation));
+}
+
+void ABuilding::InitializeBuildBlocker()
 {
 	int Offset = (CELL_SIZE / 2);
 	FVector Extent;
-	Extent.X = CELL_SIZE * CellExtentX - Offset;
-	Extent.Y = CELL_SIZE * CellExtentY - Offset;
-	Extent.Z = CELL_SIZE * CellExtentZ - Offset;
-	BoxComponent->SetBoxExtent(Extent);
+	Extent.X = CELL_SIZE * CellExtent.X - Offset;
+	Extent.Y = CELL_SIZE * CellExtent.Y - Offset;
+	Extent.Z = CELL_SIZE * CellExtent.Z - Offset;
+	BuildBlocker->SetBoxExtent(Extent);
 }
 
 void ABuilding::SetOutlineDraw(bool bDraw, int Color)

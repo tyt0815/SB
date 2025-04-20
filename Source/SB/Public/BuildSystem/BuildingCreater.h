@@ -24,6 +24,7 @@ public:
 	void DestroyPreviewBuilding();
 	void HiddenInGame(bool bNew);
 	void SnapLocation(FVector WorldLocation);
+	void CancelPreview();
 	FVector GetCellLocation(int i, int j);
 
 	UFUNCTION(BlueprintCallable)
@@ -43,7 +44,10 @@ protected:
 	UMaterialInterface* InvalidCellMaterial;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = BuildingCreater)
-	UMaterialInterface* PreviewMaterial;
+	UMaterialInterface* ValidPreviewMaterial;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = BuildingCreater)
+	UMaterialInterface* InvalidPreviewMaterial;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = BuildingCreater)
 	int CellExtentX = 10;
@@ -56,6 +60,8 @@ protected:
 private	:
 	void UpdateValidCells();
 	void UpdateBuildableState();
+	void SetPreviewBuildingMaterial(UMaterialInterface* Material);
+	void UpdateBuildableStateAndSetPreviewBuildingMaterial();
 
 	TSubclassOf<ABuilding> PreviewBuildingClass;
 	TArray<TArray<bool>> bValidCell;
