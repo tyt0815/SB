@@ -1,5 +1,5 @@
 #include "Characters/Player/SBPlayer.h"
-
+#include "BuildSystem/Building.h"
 #include "BuildSystem/BuildCameraPawn.h"
 #include "BuildSystem/BuildingCreater.h"
 #include "Camera/CameraComponent.h"
@@ -12,6 +12,8 @@
 #include "Items/Weapon.h"
 #include "SB/DebugMacro.h"
 #include "PlayerController/SBPlayerController.h"
+#include "Kismet/KismetStringLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 ASBPlayer::ASBPlayer()
 {
@@ -54,11 +56,7 @@ ASBPlayer::ASBPlayer()
 void ASBPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (BuildingCreater)
-	{
-		BuildingCreater->SnapLocation(GetActorLocation() - (FVector::ZAxisVector * 50));
-	}
+	SetBuildingCreaterLocation();
 }
 
 void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -186,8 +184,14 @@ bool ASBPlayer::IsFireReady() const
 {
 	return !IsUnarmed() &&
 		ZoomState == ECharacterZoomState::ECZS_Zooming &&
-		GetUpperBodyState() == EUpperBodyState::EUBS_Idle
+		GetUpperBodyState() == EUpperBodyState::EUBS_Idle && 
+		ControllMode == ECharacterControllMode::ECCM_Combat
 		;
+}
+
+TArray<TSubclassOf<ABuilding>> ASBPlayer::GetBuildingList()
+{
+	return BuildingClasses;
 }
 
 void ASBPlayer::OnPlayerPossessStarted_Implementation()
@@ -197,7 +201,7 @@ void ASBPlayer::OnPlayerPossessStarted_Implementation()
 
 bool ASBPlayer::IsUnarmed() const
 {
-	return bUnArmed || GetCurrentWeapon() == nullptr;
+	return bUnArmed;
 }
 
 // TODO: �̰� �� �ٲٱ� �ؾ��� �� ����.
@@ -294,6 +298,10 @@ void ASBPlayer::MouseLStarted()
 	{
 		GetCurrentWeapon()->UseStart();
 	}
+	else if (ControllMode == ECharacterControllMode::ECCM_Build)
+	{
+		BuildingCreater->CreateBuilding();
+	}
 }
 
 void ASBPlayer::MouseLOngoing()
@@ -345,34 +353,42 @@ void ASBPlayer::MouseRStarted()
 	}
 }
 
-void ASBPlayer::Number1Started()
+void ASBPlayer::NumberKeysStarted(uint32 i)
 {
 	switch (ControllMode)
 	{
 	case ECharacterControllMode::ECCM_Combat:
-		SwitchWeapon(1);
+		SwitchWeapon(i);
 		break;
 
 	case ECharacterControllMode::ECCM_Build:
-		SwitchBuildPreviewMesh(1);
+		SwitchBuildPreviewMesh(i);
 		break;
 	}
 }
 
+void ASBPlayer::Number1Started()
+{
+	NumberKeysStarted(1);
+}
+
 void ASBPlayer::Number2Started()
 {
-	SwitchWeapon(2);
+	NumberKeysStarted(2);
 }
 
 void ASBPlayer::Number3Started()
 {
-	UnequipWeapon();
-	ZoomOut();
+	NumberKeysStarted(3);
 }
 
 void ASBPlayer::SwitchWeapon(uint32 Index)
 {
-	if (CurrentWeaponIndex != Index)
+	if (Index == 3)
+	{
+		SwitchToUnarmedState();
+	}
+	else if (CurrentWeaponIndex != Index)
 	{
 		UnequipWeapon();
 		EquipWeapon(Index);
@@ -380,18 +396,23 @@ void ASBPlayer::SwitchWeapon(uint32 Index)
 	}
 }
 
+void ASBPlayer::SwitchToUnarmedState()
+{
+	UnequipWeapon();
+	ZoomOut();
+}
+
 void ASBPlayer::SwitchBuildPreviewMesh(uint32 Index)
 {
 	// TODO
-	if (BuildingCreater)
+	if (BuildingCreater && BuildingClasses.IsValidIndex(Index) && BuildingClasses[Index])
 	{
-		BuildingCreater->SetPreviewBuilding(Index);
+		BuildingCreater->SetPreviewBuilding(BuildingClasses[Index]);
 	}
 }
 
 void ASBPlayer::EquipWeapon(uint32 Index)
 {
-	bUnArmed = false;
 	SetCurrentWeapon(Index);
 	AttachWeapon(GetCurrentWeapon(), RightHandSocketName);
 	SetWeaponVisibility(GetCurrentWeapon(), true, true);
@@ -429,6 +450,7 @@ void ASBPlayer::SetCurrentWeapon(uint32 Index)
 {
 	if (WeaponQuickslot.IsValidIndex(Index))
 	{
+		bUnArmed = false;
 		CurrentWeaponIndex = Index;
 	}
 }
@@ -464,10 +486,12 @@ void ASBPlayer::TabStarted()
 {
 	if (ControllMode == ECharacterControllMode::ECCM_Build)
 	{
+		BuildingCreater->DestroyPreviewBuilding();
 		ControllMode = ECharacterControllMode::ECCM_Combat;
 	}
 	else
 	{
+		SwitchToUnarmedState();
 		ControllMode = ECharacterControllMode::ECCM_Build;
 	}
 }
@@ -573,10 +597,11 @@ void ASBPlayer::SpawnBuildingCreater()
 	if (World && BuildingCreaterClass)
 	{
 		BuildingCreater = World->SpawnActor<ABuildingCreater>(BuildingCreaterClass);
-		if (BuildingCreater)
+		if (!BuildingCreater)
 		{
-			BuildingCreater->SetGridVisibility(false);
+			BuildingCreater = World->SpawnActor<ABuildingCreater>();
 		}
+		BuildingCreater->SetGridVisibility(false);
 	}
 }
 
@@ -588,4 +613,35 @@ void ASBPlayer::SpawnAndStockWeapon(uint32 i)
 		SpawnParameters.Owner = this;
 		StockWeaponInQuickSlot(GetWorld()->SpawnActor<AWeapon>(WeaponClasses[i], SpawnParameters), i);
 	}
+}
+
+void ASBPlayer::SetBuildingCreaterLocation()
+{
+	check(BuildingCreater);
+	FVector Start = FollowCamera->GetComponentLocation();
+	FVector End = Start + FollowCamera->GetForwardVector() * 1000.0f;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+	FHitResult HitResult;
+	UKismetSystemLibrary::LineTraceSingle(
+		this,
+		Start,
+		End,
+		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility),
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::None,
+		HitResult,
+		true
+	);
+	FVector Location;
+	if (HitResult.GetActor())
+	{
+		Location = HitResult.ImpactPoint;
+	}
+	else
+	{
+
+	}
+	BuildingCreater->SnapLocation(HitResult.ImpactPoint);
 }

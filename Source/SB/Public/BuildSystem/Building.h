@@ -31,13 +31,26 @@ public:
 
 
 protected:
+
+	UFUNCTION(BlueprintCallable, Category = Building)
+	void SetBoxComponentExtents();
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* BoxComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* Mesh;
 
-	UPROPERTY(BlueprintReadOnly, Category = "States")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Building)
+	int CellExtentX = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Building)
+	int CellExtentY = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Building)
+	int CellExtentZ = 1;
+
+	UPROPERTY(BlueprintReadOnly, Category = Building)
 	bool bSelected = false;
 
 private:
@@ -53,5 +66,17 @@ public:
 	FORCEINLINE UBoxComponent* GetBoxComponent() const
 	{
 		return BoxComponent;
+	}
+	FORCEINLINE int GetCellExtentX() const
+	{
+		return CellExtentX;
+	}
+	FORCEINLINE int GetCellExtentY() const
+	{
+		return CellExtentY;
+	}
+	FORCEINLINE int GetCellExtentZ() const
+	{
+		return CellExtentZ;
 	}
 };

@@ -1,5 +1,6 @@
 #include "BuildSystem/BuildCameraPawn.h"
 #include "BuildSystem/Building.h"
+#include "BuildSystem/BuildingCreater.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
@@ -27,19 +28,13 @@ void ABuildCameraPawn::Tick(float DeltaTime)
 
 	TraceUnderMouseCursor();
 
+	SetBuildingCreaterLocation();
+
 	switch (BuildMode)
 	{
 	case EBuildMode::EBM_Interaction:
 	{
 		ChangeMouseHoveredBuilding();
-		break;
-	}
-
-	case EBuildMode::EBM_Placement:
-	{
-		check(GetCurrentPreviewBuilding());
-
-		GetCurrentPreviewBuilding()->SetActorLocation(CalculatePlacementLocation(GetCurrentPreviewBuilding()));
 		break;
 	}
 
@@ -57,10 +52,13 @@ void ABuildCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	if (EnhancedInputComponent)
 	{
 		EnhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ABuildCameraPawn::Move);
-		EnhancedInputComponent->BindAction(ToggleToPlayerCharacterInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::ToggleToPlayerCharacter);		EnhancedInputComponent->BindAction(ToggleToPlayerCharacterInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::ToggleToPlayerCharacter);			EnhancedInputComponent->BindAction(ToggleToPlayerCharacterInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::ToggleToPlayerCharacter);		EnhancedInputComponent->BindAction(ToggleToPlayerCharacterInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::ToggleToPlayerCharacter);
-		EnhancedInputComponent->BindAction(MouseLInputAction, ETriggerEvent::Triggered, this, &ABuildCameraPawn::MouseLTriggered);
-		EnhancedInputComponent->BindAction(MouseRInputAction, ETriggerEvent::Triggered, this, &ABuildCameraPawn::MouseRTriggered);
-		EnhancedInputComponent->BindAction(Num1InputAction, ETriggerEvent::Triggered, this, &ABuildCameraPawn::Num1Triggerd);
+		EnhancedInputComponent->BindAction(CapsLockInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::CapsLockStarted);
+		EnhancedInputComponent->BindAction(MouseLInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::MouseLStarted);
+		EnhancedInputComponent->BindAction(MouseRInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::MouseRStarted);
+		if (NumberInputActions.IsValidIndex(1) && NumberInputActions[1])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[1], ETriggerEvent::Started, this, &ABuildCameraPawn::Num1Started);
+		}
 	}
 }
 
@@ -74,21 +72,15 @@ void ABuildCameraPawn::BeginPlay()
 		SCREEN_LOG_NONE_KEY("ABuildCameraPawn class must owned by ASBPlayer when BeginPlay");
 	}
 
-	// CreatePreviewBuildings
+	// Spawn BuildingCreater
+	if (BuildingCreaterClass)
 	{
-		PreviewBuildings.SetNum(PreviewBuildingClasses.Num());
-		for (int i = 0; i < PreviewBuildings.Num(); ++i)
-		{
-			if (PreviewBuildingClasses[i])
-			{
-				PreviewBuildings[i] = GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClasses[i]);
-				if (PreviewBuildings[i])
-				{
-					PreviewBuildings[i]->SetVisibility(false);
-					// PreviewBuildings[i]->SetAsPreview();
-				}
-			}
-		}
+		BuildingCreater = GetWorld()->SpawnActor<ABuildingCreater>(BuildingCreaterClass);
+	}
+	else
+	{
+		BuildingCreater = GetWorld()->SpawnActor<ABuildingCreater>();
+		SCREEN_LOG_NONE_KEY(TEXT("No SubClass of ABuildingCreater"));
 	}
 }
 
@@ -114,7 +106,7 @@ void ABuildCameraPawn::Move(const FInputActionValue& Value)
 	}
 }
 
-void ABuildCameraPawn::ToggleToPlayerCharacter()
+void ABuildCameraPawn::CapsLockStarted()
 {
 	if (PlayerCharacter)
 	{
@@ -123,7 +115,7 @@ void ABuildCameraPawn::ToggleToPlayerCharacter()
 	}
 }
 
-void ABuildCameraPawn::MouseLTriggered()
+void ABuildCameraPawn::MouseLStarted()
 {
 	switch (BuildMode)
 	{
@@ -134,23 +126,14 @@ void ABuildCameraPawn::MouseLTriggered()
 	}
 	case EBuildMode::EBM_Placement:
 	{
-		check(GetCurrentPreviewBuilding());
-		if (PreviewBuildingClasses[CurrentPreviewBuildingIndex] && MouseDownTraceHit.GetActor())
-		{
-			FActorSpawnParameters SpawnParam;
-			ABuilding* Building = GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClasses[CurrentPreviewBuildingIndex]);
-			if (Building)
-			{
-				Building->SetActorLocation(CalculatePlacementLocation(Building));
-			}
-		}
+		BuildingCreater->CreateBuilding();
 		EndPlacementMode();
 	}
 	}
 	
 }
 
-void ABuildCameraPawn::MouseRTriggered()
+void ABuildCameraPawn::MouseRStarted()
 {
 	switch (BuildMode)
 	{
@@ -169,23 +152,14 @@ void ABuildCameraPawn::MouseRTriggered()
 
 void ABuildCameraPawn::EndPlacementMode()
 {
-	CurrentPreviewBuildingIndex = 0;
-	if (GetCurrentPreviewBuilding())
-	{
-		GetCurrentPreviewBuilding()->SetVisibility(false);
-	}
+	BuildingCreater->DestroyPreviewBuilding();
+	BuildingCreater->HiddenInGame(true);
 	BuildMode = EBuildMode::EBM_Interaction;
 }
 
-void ABuildCameraPawn::Num1Triggerd()
+void ABuildCameraPawn::Num1Started()
 {
-	switch (BuildMode)
-	{
-	case EBuildMode::EBM_Interaction:
-	{
-		SwitchToPlacementMode(1);
-	}
-	}
+	NumberStarted(1);
 }
 
 void ABuildCameraPawn::SelectBuilding(ABuilding* Building)
@@ -230,7 +204,6 @@ void ABuildCameraPawn::TraceUnderMouseCursor()
 	FVector LineTraceEnd = MouseWorldPosition + MouseWorldDirection * 10000.0f;
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
-	ActorsToIgnore.Add(GetCurrentPreviewBuilding());
 	UKismetSystemLibrary::LineTraceSingle(
 		this,
 		MouseWorldPosition,
@@ -315,37 +288,34 @@ void ABuildCameraPawn::ChangeSelectedBuilding(ABuilding* Building)
 	}
 }
 
-void ABuildCameraPawn::ChangePreviewBuilding(int i)
+void ABuildCameraPawn::NumberStarted(int i)
 {
-	ABuilding* OldBuilding = GetCurrentPreviewBuilding();
-	ABuilding* NewBuilding = nullptr;
-	if (PreviewBuildings.IsValidIndex(i))
+	switch (BuildMode)
 	{
-		NewBuilding = PreviewBuildings[i];
+	case EBuildMode::EBM_Interaction:
+	{
+		SwitchToPlacementMode(i);
 	}
-	if (NewBuilding == OldBuilding)
-	{
-
-	}
-	else
-	{
-		if (OldBuilding)
-		{
-			OldBuilding->SetVisibility(false);
-		}
-		if (NewBuilding)
-		{
-			NewBuilding->SetVisibility(true);
-		}
-		CurrentPreviewBuildingIndex = i;
 	}
 }
 
-void ABuildCameraPawn::SwitchToPlacementMode(int PreviewBuildingIndex)
+void ABuildCameraPawn::SwitchToPlacementMode(int i)
 {
-	if (PreviewBuildings.IsValidIndex(PreviewBuildingIndex) && PreviewBuildings[PreviewBuildingIndex])
+	BuildMode = EBuildMode::EBM_Placement;
+	if (PlayerCharacter)
 	{
-		BuildMode = EBuildMode::EBM_Placement;
-		ChangePreviewBuilding(PreviewBuildingIndex);
+		TArray<TSubclassOf<ABuilding>> BuildingList = PlayerCharacter->GetBuildingList();
+		SCREEN_LOG_NONE_KEY("sibal");
+		if (BuildingList.IsValidIndex(i))
+		{
+			SCREEN_LOG_NONE_KEY("sibal2");
+			BuildingCreater->SetPreviewBuilding(BuildingList[i]);
+		}
 	}
+	
+}
+
+void ABuildCameraPawn::SetBuildingCreaterLocation()
+{
+	BuildingCreater->SnapLocation(MouseDownTraceHit.ImpactPoint);
 }

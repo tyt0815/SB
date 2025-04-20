@@ -19,8 +19,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	void SetPreviewBuilding(uint32 i);
+	void SetPreviewBuilding(TSubclassOf<ABuilding> BuildingClass);
+	void CreateBuilding();
 	void DestroyPreviewBuilding();
+	void HiddenInGame(bool bNew);
 	void SnapLocation(FVector WorldLocation);
 
 	UFUNCTION(BlueprintCallable)
@@ -30,7 +32,6 @@ public:
 	void SetGridMaterial(UMaterialInterface* Material);
 
 protected:
-
 	UPROPERTY(EditAnywhere, Category = Components)
 	class UArrowComponent* ArrowComponent;
 
@@ -42,9 +43,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = BuildingCreater)
 	UMaterialInterface* PreviewMaterial;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = BuildingCreater)
-	int CellSize = 100;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = BuildingCreater)
 	int CellExtentX = 10;
@@ -52,12 +50,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = BuildingCreater)
 	int CellExtentY = 10;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = BuildingCreater)
-	TArray<TSubclassOf<ABuilding>> BuildingClasses;
-
 	TArray<TArray<UDecalComponent*>> DecalComponents;
 
 private	:
+	TSubclassOf<ABuilding> PreviewBuildingClass;
 	ABuilding* PreviewBuilding;
 	bool bGridVisibility = true;
 };

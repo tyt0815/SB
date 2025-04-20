@@ -14,6 +14,7 @@ class UInputAction;
 class USpringArmComponent;
 class UCameraComponent;
 class AWeapon;
+class ABuilding;
 class ABuildCameraPawn;
 class ABuildingCreater;
 struct FInputActionValue;
@@ -53,6 +54,7 @@ public:
 	void PlayReloadMontage(AWeapon* Weapon);
 	void PlayEquipMontage(AWeapon* Weapon);
 	bool IsFireReady() const;
+	TArray<TSubclassOf<ABuilding>> GetBuildingList();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "BuildSystem")
 	void OnPlayerPossessStarted();
@@ -104,6 +106,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = BuildSystem)
 	TSubclassOf<ABuildingCreater> BuildingCreaterClass;
 
+	UPROPERTY(EditAnywhere, Category = BuildSystem)
+	TArray<TSubclassOf<ABuilding>> BuildingClasses;
+
 	TArray<AWeapon*> WeaponQuickslot;
 
 private:
@@ -115,10 +120,12 @@ private:
 	void RStarted();
 	void BStarted();
 	void MouseRStarted();
+	void NumberKeysStarted(uint32 i);
 	void Number1Started();
 	void Number2Started();
 	void Number3Started();
 	void SwitchWeapon(uint32 Index);
+	void SwitchToUnarmedState();
 	void SwitchBuildPreviewMesh(uint32 Index);
 	void EquipWeapon(uint32 Index);
 	void UnequipWeapon();
@@ -139,6 +146,7 @@ private:
 	void SpawnBuildCameraPawn();
 	void SpawnBuildingCreater();
 	void SpawnAndStockWeapon(uint32 i);
+	void SetBuildingCreaterLocation();
 
 	/*
 	* Enhanced Input

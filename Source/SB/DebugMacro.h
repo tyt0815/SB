@@ -8,18 +8,17 @@
 	}
 
 #define SCREEN_LOG(Key, DebugMessage)\
-	FColor LogColor; \
 	switch (Key)\
 	{ \
-		case 0: LogColor = FColor::Red; break;\
-		case 1: LogColor = FColor::Green; break;\
-		case 2: LogColor = FColor::Blue; break;\
-		case 3: LogColor = FColor::Yellow; break; \
-		case 4: LogColor = FColor::Cyan; break; \
-		case 5: LogColor = FColor::Magenta; break;\
+		case 0: SCREEN_DEBUG_MESSAGE(Key, 5, FColor::Red, DebugMessage); break;\
+		case 1: SCREEN_DEBUG_MESSAGE(Key, 5, FColor::Green, DebugMessage); break;\
+		case 2: SCREEN_DEBUG_MESSAGE(Key, 5, FColor::Blue, DebugMessage); break;\
+		case 3: SCREEN_DEBUG_MESSAGE(Key, 5, FColor::Yellow, DebugMessage); break; \
+		case 4: SCREEN_DEBUG_MESSAGE(Key, 5, FColor::Cyan, DebugMessage); break; \
+		case 5: SCREEN_DEBUG_MESSAGE(Key, 5, FColor::Magenta, DebugMessage); break;\
 		default: FColor::Purple; break;\
 	}\
-	SCREEN_DEBUG_MESSAGE(Key, 5, LogColor, DebugMessage);
+	
 
 #define SCREEN_LOG_COLOR(Key, DisplayColor, DebugMessage) SCREEN_DEBUG_MESSAGE(Key, 5, DisplayColor, DebugMessage);
 #define SCREEN_LOG_SINGLE_FRAME(DebugMessage) SCREEN_DEBUG_MESSAGE(INDEX_NONE, 0, FColor::Purple, DebugMessage);

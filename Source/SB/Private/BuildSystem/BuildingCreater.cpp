@@ -2,6 +2,7 @@
 #include "BuildSystem/Building.h"
 #include "Components/ArrowComponent.h"
 #include "Components/DecalComponent.h"
+#include "BuildSystem/BuildSystemDefines.h"
 
 ABuildingCreater::ABuildingCreater()
 {
@@ -18,12 +19,12 @@ ABuildingCreater::ABuildingCreater()
 			DecalComponents[i][j] = CreateDefaultSubobject<UDecalComponent>(FName(FString::Printf(TEXT("Decal_%d_%d"), i, j)));
 			DecalComponents[i][j]->SetupAttachment(GetRootComponent());
 			FVector Location;
-			Location.X = CellSize * (i - CellExtentX);
-			Location.Y = CellSize * (j - CellExtentY);
+			Location.X = CELL_SIZE * (i - CellExtentX);
+			Location.Y = CELL_SIZE * (j - CellExtentY);
 			Location.Z = 0.0f;
 			DecalComponents[i][j]->SetRelativeLocation(Location);
 			DecalComponents[i][j]->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
-			DecalComponents[i][j]->DecalSize = FVector(50.0f, CellSize / 2.0f, CellSize / 2.0f);
+			DecalComponents[i][j]->DecalSize = FVector(50.0f, CELL_SIZE / 2.0f, CELL_SIZE / 2.0f);
 		}
 	}
 
@@ -43,20 +44,32 @@ void ABuildingCreater::BeginPlay()
 	SetGridMaterial(ValidCellMaterial);
 }
 
-void ABuildingCreater::SetPreviewBuilding(uint32 i)
+void ABuildingCreater::SetPreviewBuilding(TSubclassOf<ABuilding> BuildingClass)
 {
-	if (BuildingClasses.IsValidIndex(i) && BuildingClasses[i])
+	if (BuildingClass)
 	{
 		DestroyPreviewBuilding();
 
-		PreviewBuilding = GetWorld()->SpawnActor<ABuilding>(BuildingClasses[i]);
+		PreviewBuildingClass = BuildingClass;
+		PreviewBuilding = GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClass);
 		if (PreviewBuilding)
 		{
 			PreviewBuilding->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 			PreviewBuilding->SetAsPreview(PreviewMaterial);
-			SetGridVisibility(true);
+			HiddenInGame(false);
 		}
 	}
+}
+
+void ABuildingCreater::CreateBuilding()
+{
+	if (PreviewBuilding && PreviewBuildingClass)
+	{
+		FActorSpawnParameters SpawnParameters;
+		GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClass, PreviewBuilding->GetTransform());
+	}
+	DestroyPreviewBuilding();
+	HiddenInGame(true);
 }
 
 void ABuildingCreater::DestroyPreviewBuilding()
@@ -64,17 +77,49 @@ void ABuildingCreater::DestroyPreviewBuilding()
 	if (PreviewBuilding)
 	{
 		PreviewBuilding->Destroy();
-		PreviewBuilding = nullptr;
+	}
+	PreviewBuilding = nullptr;
+	PreviewBuildingClass = nullptr;
+}
+
+void ABuildingCreater::HiddenInGame(bool bNew)
+{
+	SetGridVisibility(!bNew);
+	for (auto& Rows : DecalComponents)
+	{
+		for (auto& Decal : Rows)
+		{
+			if (Decal)
+			{
+				Decal->bHiddenInGame = bNew;
+			}
+		}
 	}
 }
 
 void ABuildingCreater::SnapLocation(FVector WorldLocation)
 {
-	int XIndex = WorldLocation.X / CellSize;
-	int YIndex = WorldLocation.Y / CellSize;
+	int XIndex = WorldLocation.X / CELL_SIZE;
+	int YIndex = WorldLocation.Y / CELL_SIZE;
 	FVector SnappedLocation = WorldLocation;
-	SnappedLocation.X = CellSize * (XIndex + 0.5f);
-	SnappedLocation.Y = CellSize * (YIndex + 0.5f);
+	SnappedLocation.X = CELL_SIZE * XIndex;
+	SnappedLocation.Y = CELL_SIZE * YIndex;
+	if (WorldLocation.X >= 0)
+	{
+		SnappedLocation.X += CELL_SIZE * 0.5f;
+	}
+	else
+	{
+		SnappedLocation.X -= CELL_SIZE * 0.5f;
+	}
+	if (WorldLocation.Y >= 0)
+	{
+		SnappedLocation.Y += CELL_SIZE * 0.5f;
+	}
+	else
+	{
+		SnappedLocation.Y -= CELL_SIZE * 0.5f;
+	}
 	SetActorLocation(SnappedLocation);
 }
 

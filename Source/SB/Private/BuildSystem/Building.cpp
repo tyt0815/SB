@@ -1,4 +1,5 @@
 #include "BuildSystem/Building.h"
+#include "BuildSystem/BuildSystemDefines.h"
 #include "Components/BoxComponent.h"
 #include "SB/DebugMacro.h"
 
@@ -88,6 +89,16 @@ void ABuilding::SetAsPreview(UMaterialInterface* Material)
 			Mesh->SetMaterial(i, Material);
 		}
 	}
+}
+
+void ABuilding::SetBoxComponentExtents()
+{
+	int Offset = (CELL_SIZE / 2);
+	FVector Extent;
+	Extent.X = CELL_SIZE * CellExtentX - Offset;
+	Extent.Y = CELL_SIZE * CellExtentY - Offset;
+	Extent.Z = CELL_SIZE * CellExtentZ - Offset;
+	BoxComponent->SetBoxExtent(Extent);
 }
 
 void ABuilding::SetOutlineDraw(bool bDraw, int Color)
