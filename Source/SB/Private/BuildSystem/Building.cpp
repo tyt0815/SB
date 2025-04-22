@@ -24,12 +24,13 @@ void ABuilding::Tick(float DeltaTime)
 void ABuilding::BeginPlay()
 {
 	Super::BeginPlay();
+	SnapLocation(GetActorLocation());
 }
 
 void ABuilding::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	InitializeBuildBlocker();
+	BuildBlocker->SetBoxExtent(BuildSystem::CalculateBoxExtent(CellExtent.X, CellExtent.Y, CellExtent.Z));
 }
 
 void ABuilding::OnMouseHoverStarted()
@@ -125,16 +126,6 @@ void ABuilding::SetAllMaterials(UMaterialInterface* Material)
 void ABuilding::SnapLocation(FVector WorldLocation)
 {
 	SetActorLocation(BuildSystem::SnapLocationXY(WorldLocation));
-}
-
-void ABuilding::InitializeBuildBlocker()
-{
-	int Offset = (CELL_SIZE / 2);
-	FVector Extent;
-	Extent.X = CELL_SIZE * CellExtent.X - Offset;
-	Extent.Y = CELL_SIZE * CellExtent.Y - Offset;
-	Extent.Z = CELL_SIZE * CellExtent.Z - Offset;
-	BuildBlocker->SetBoxExtent(Extent);
 }
 
 void ABuilding::SetOutlineDraw(bool bDraw, int Color)

@@ -1,15 +1,17 @@
 #include "BuildSystem/GridBuilding.h"
 #include "BuildSystem/BuildSystem.h"
 #include "Components/BoxComponent.h"
+#include "Characters/Player/SBPlayer.h"
+#include "SB/DebugMacro.h"
 
 AGridBuilding::AGridBuilding()
 {
-	Grid = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Grid"));
-	Grid->SetupAttachment(BuildBlocker);
-	Grid->SetCollisionProfileName("NoCollision");
-	GridBoundary = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GridBoundary"));
-	GridBoundary->SetupAttachment(BuildBlocker);
-	GridBoundary->SetCollisionProfileName("GridBoundary");
+	GridBoundaryBox = CreateDefaultSubobject<UBoxComponent>(TEXT("GridBoundaryBox"));
+	GridBoundaryBox->SetupAttachment(BuildBlocker);
+	GridBoundaryBox->SetCollisionProfileName("GridBoundary");
+	GridBoundaryMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GridBoundaryMesh"));
+	GridBoundaryMesh->SetupAttachment(BuildBlocker);
+	GridBoundaryMesh->SetCollisionProfileName("NoCollision");
 }
 
 void AGridBuilding::Tick(float DeltaTime)
@@ -20,17 +22,31 @@ void AGridBuilding::Tick(float DeltaTime)
 void AGridBuilding::BeginPlay()
 {
 	Super::BeginPlay();
+
+	GridBoundaryBox->OnComponentBeginOverlap.AddDynamic(this, &AGridBuilding::OnPlayerBeginOverlapGridBoundary);
+	GridBoundaryBox->OnComponentEndOverlap.AddDynamic(this, &AGridBuilding::OnPlayerEndOverlapGridBoundary);
 }
 
 void AGridBuilding::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	Grid->SetRelativeLocation(FVector(0.0f, 0.0f, 1 + CELL_SIZE * (0.5f - CellExtent.Z)));
-	GridBoundary->SetRelativeLocation(FVector(0.0f, 0.0f, CELL_SIZE * (1 - CellExtent.Z)));
+
+	GridBoundaryBox->SetBoxExtent(BuildSystem::CalculateBoxExtent(GridExtent.X, GridExtent.Y, CellExtent.Z));
+
+	GridBoundaryMesh->SetRelativeLocation(FVector(0.0f, 0.0f, CELL_SIZE * (1 - CellExtent.Z)));
 	FVector Scale;
 	Scale.X = 2 * GridExtent.X - 1;
 	Scale.Y = 2 * GridExtent.Y - 1;
 	Scale.Z = 1.0f;
-	Grid->SetRelativeScale3D(Scale);
-	GridBoundary->SetRelativeScale3D(Scale);
+	GridBoundaryMesh->SetRelativeScale3D(Scale + FVector(0.001f, 0.001f, 0.0f));
+}
+
+void AGridBuilding::OnPlayerBeginOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	SCREEN_LOG_NONE_KEY("BeginOverlap");
+}
+
+void AGridBuilding::OnPlayerEndOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	SCREEN_LOG_NONE_KEY("sibal");
 }

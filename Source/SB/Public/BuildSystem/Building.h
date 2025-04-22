@@ -42,7 +42,6 @@ public:
 
 
 protected:
-	void InitializeBuildBlocker();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* BuildBlocker;
