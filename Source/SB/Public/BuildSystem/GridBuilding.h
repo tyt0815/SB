@@ -21,19 +21,23 @@ public:
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 protected:
+	UFUNCTION()
+	virtual void OnPlayerBeginOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	virtual void OnPlayerEndOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* GridBoundaryBox = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* GridBoundaryMesh = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Building | Grid")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Building")
 	FIntVector GridExtent = FIntVector(1, 1, 1);
 
+	UPROPERTY(VisibleAnywhere, Category = "Building")
+	TArray<ABuilding*> LinkedBuilding;
 private:
-	UFUNCTION()
-	virtual void OnPlayerBeginOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	virtual void OnPlayerEndOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };

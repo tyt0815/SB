@@ -19,6 +19,7 @@ void ABuilding::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	SCREEN_LOG_SINGLE_FRAME(FString::FromInt(IsOperating()));
 }
 
 void ABuilding::BeginPlay()
@@ -27,9 +28,42 @@ void ABuilding::BeginPlay()
 	SnapLocation(GetActorLocation());
 }
 
+void ABuilding::ConnectToHub(ACentralHubBuilding* Hub)
+{
+	if (Hub)
+	{
+		LinkedHubs.AddUnique(Hub);
+	}
+}
+
+void ABuilding::ConnectToPowerFacility(APowerFacility* PowerFacility)
+{
+	if (PowerFacility)
+	{
+		LinkedPowerFacilitys.AddUnique(PowerFacility);
+	}
+}
+
+void ABuilding::DisconnectToHub(ACentralHubBuilding* Hub)
+{
+	if (Hub)
+	{
+		LinkedHubs.Remove(Hub);
+	}
+}
+
+void ABuilding::DisconnectToPowerFacility(APowerFacility* PowerFacility)
+{
+	if (PowerFacility)
+	{
+		LinkedPowerFacilitys.Remove(PowerFacility);
+	}
+}
+
 void ABuilding::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
+
 	BuildBlocker->SetBoxExtent(BuildSystem::CalculateBoxExtent(CellExtent.X, CellExtent.Y, CellExtent.Z));
 }
 
@@ -121,6 +155,34 @@ void ABuilding::SetAllMaterials(UMaterialInterface* Material)
 			Mesh->SetMaterial(i, Material);
 		}
 	}
+}
+
+bool ABuilding::IsOperating() const
+{
+	switch (BuildingType)
+	{
+	case EBuildingType::EBT_StandAlone:
+		return true;
+	case EBuildingType::EBT_HubLinkedFacility:
+		if (LinkedHubs.Num() > 0)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	case EBuildingType::EBT_PowerLinkedFacility:
+		if (LinkedPowerFacilitys.Num() > 0)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return false;
 }
 
 void ABuilding::SnapLocation(FVector WorldLocation)

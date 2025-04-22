@@ -7,6 +7,16 @@
 #include "Building.generated.h"
 
 class UBoxComponent;
+class ACentralHubBuilding;
+class APowerFacility;
+
+UENUM(BlueprintType)
+enum class EBuildingType : uint8
+{
+	EBT_StandAlone UMETA(DisplayName = "StandAlone"),
+	EBT_HubLinkedFacility UMETA(DisplayName = "HubLinkedFacility"),
+	EBT_PowerLinkedFacility UMETA(DisplayName = "PowerLinkedFacility")
+};
 
 UCLASS()
 class SB_API ABuilding : public AActor
@@ -21,6 +31,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	virtual void ConnectToHub(ACentralHubBuilding* Hub);
+	virtual void ConnectToPowerFacility(APowerFacility* PowerFacility);
+	virtual void DisconnectToHub(ACentralHubBuilding* Hub);
+	virtual void DisconnectToPowerFacility(APowerFacility* PowerFacility);
 	virtual void OnConstruction(const FTransform& Transform) override;
 	void OnMouseHoverStarted();
 	void OnMouseHoverEnded();
@@ -36,13 +50,12 @@ public:
 	void SetVisibility(bool bVisibility);
 	void SetAsPreview();
 	void SetAllMaterials(UMaterialInterface* Material);
+	bool IsOperating() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Building")
 	void SnapLocation(FVector WorldLocation);
 
-
 protected:
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* BuildBlocker;
 
@@ -52,9 +65,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Building)
 	FIntVector CellExtent = FIntVector(1, 1, 1);
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Building)
+	EBuildingType BuildingType = EBuildingType::EBT_StandAlone;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Building)
+	int PowerConsumption = 0;
+
 	UPROPERTY(BlueprintReadOnly, Category = Building)
 	bool bSelected = false;
 
+	TArray<ACentralHubBuilding*> LinkedHubs;
+	TArray<APowerFacility*> LinkedPowerFacilitys;
 private:
 	// 외곽선을 그린다. 색상은 PP_HightlightMaterial_Inst 의 색상을 참고.
 	void SetOutlineDraw(bool bDraw, int Color);
@@ -72,5 +93,9 @@ public:
 	FORCEINLINE FIntVector GetCellExtent() const
 	{
 		return CellExtent;
+	}
+	FORCEINLINE EBuildingType GetBuildingType() const
+	{
+		return BuildingType;
 	}
 };
