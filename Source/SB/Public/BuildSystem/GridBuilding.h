@@ -19,8 +19,11 @@ protected:
 
 public:
 	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void SetAsPreview() override;
 
 protected:
+	void TraceBuildingsInBoundary(TArray<FHitResult>& HitResults);
+
 	UFUNCTION()
 	virtual void OnBeginOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 

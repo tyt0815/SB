@@ -3,6 +3,7 @@
 #include "BuildSystem/CentralHubBuilding.h"
 #include "BuildSystem/PowerFacility.h"
 #include "Components/BoxComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "SB/DebugMacro.h"
 
 ABuilding::ABuilding()
@@ -41,7 +42,7 @@ void ABuilding::IncreasePowerConsumption(uint16 Power)
 void ABuilding::DecreasePowerConsumption(uint16 Power)
 {
 	PowerConsumption -= Power;
-	if (ParentBuilding && !bPowerOn)
+	if (ParentBuilding && bPowerOn)
 	{
 		ParentBuilding->DecreasePowerConsumption(Power);
 	}
@@ -49,6 +50,71 @@ void ABuilding::DecreasePowerConsumption(uint16 Power)
 
 void ABuilding::PropagatePowerState()
 {
+}
+
+void ABuilding::Place(FVector WorldLocation)
+{
+	SnapLocation(WorldLocation);
+	TryConnectToNearByFacility();
+}
+
+void ABuilding::TryConnectToNearByFacility()
+{
+	TArray<FHitResult> HitResults;
+	TraceGridBuilding(HitResults);
+	if (BuildingType == EBuildingType::EBT_HubLinkedFacility)
+	{
+		for (const auto& HitResult : HitResults)
+		{
+			if (HitResult.GetActor())
+			{
+				ACentralHubBuilding* Hub = Cast<ACentralHubBuilding>(HitResult.GetActor());
+				if (Hub)
+				{
+					TryConnectToBuilding(Hub);
+					return;
+				}
+			}
+		}
+	}
+	else if (BuildingType == EBuildingType::EBT_PowerLinkedFacility)
+	{
+		for (const auto& HitResult : HitResults)
+		{
+			if (HitResult.GetActor())
+			{
+				APowerFacility* PowerFacility = Cast<APowerFacility>(HitResult.GetActor());
+				if (PowerFacility)
+				{
+					TryConnectToBuilding(PowerFacility);
+					return;
+				}
+			}
+		}
+	}
+}
+
+void ABuilding::TraceGridBuilding(TArray<FHitResult>& HitResults)
+{
+	FVector Start = GetActorLocation() + (FVector::ZAxisVector * BuildBlocker->GetScaledBoxExtent().Z);
+	FVector End = GetActorLocation() - (FVector::ZAxisVector * BuildBlocker->GetScaledBoxExtent().Z);
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel3));
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+	UKismetSystemLibrary::BoxTraceMultiForObjects(
+		this,
+		Start,
+		End,
+		FVector(BuildBlocker->GetScaledBoxExtent().X, BuildBlocker->GetScaledBoxExtent().Y, 0.0f),
+		FRotator(),
+		ObjectTypes,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		HitResults,
+		true
+	);
 }
 
 void ABuilding::OnConstruction(const FTransform& Transform)
@@ -216,7 +282,7 @@ void ABuilding::SetAsPreview()
 	BuildBlocker->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Mesh->bReceivesDecals = false;
 	SetActorRelativeLocation(FVector(0.0f, 0.0f, GetZOffset()));
-	
+	bPreview = true;
 }
 
 void ABuilding::SetAllMaterials(UMaterialInterface* Material)
@@ -270,13 +336,19 @@ bool ABuilding::HasSufficientPower() const
 	}
 	else
 	{
-		return ParentBuilding->IsOperating();
+		return IsConnectedToParentBuilding() && ParentBuilding->IsOperating();
 	}
 }
 
 void ABuilding::SnapLocation(FVector WorldLocation)
 {
 	SetActorLocation(BuildSystem::SnapLocationXY(WorldLocation));
+}
+
+void ABuilding::BeginDestroy()
+{
+	TryDisconnectToBuilding();
+	Super::BeginDestroy();
 }
 
 void ABuilding::SetOutlineDraw(bool bDraw, int Color)

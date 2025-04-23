@@ -34,6 +34,9 @@ public:
 	void IncreasePowerConsumption(uint16 Power);
 	void DecreasePowerConsumption(uint16 Power);
 	virtual void PropagatePowerState();
+	virtual void Place(FVector WorldLocation);
+	virtual void TryConnectToNearByFacility();
+	void TraceGridBuilding(TArray<FHitResult>& HitResults);
 	virtual void OnConstruction(const FTransform& Transform) override;
 	void OnMouseHoverStarted();
 	void OnMouseHoverEnded();
@@ -51,7 +54,7 @@ public:
 	float GetDepth() const;
 	float GetHeight() const;
 	void SetVisibility(bool bVisibility);
-	void SetAsPreview();
+	virtual void SetAsPreview();
 	void SetAllMaterials(UMaterialInterface* Material);
 	void SetPowerState(bool bOn);
 	virtual bool IsOperating() const;
@@ -62,6 +65,7 @@ public:
 	void SnapLocation(FVector WorldLocation);
 
 protected:
+	virtual void BeginDestroy() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* BuildBlocker;
@@ -89,6 +93,8 @@ private:
 	void SetOutlineDraw(bool bDraw, int Color);
 	void SetRenderCustomDepthStencil(bool bRender, int Stencil);
 
+	bool bPreview = false;
+
 public:
 	FORCEINLINE UStaticMeshComponent* GetMesh() const
 	{
@@ -105,5 +111,13 @@ public:
 	FORCEINLINE EBuildingType GetBuildingType() const
 	{
 		return BuildingType;
+	}
+	FORCEINLINE bool IsPreview() const
+	{
+		return bPreview;
+	}
+	FORCEINLINE bool IsConnectedToParentBuilding() const
+	{
+		return ParentBuilding != nullptr;
 	}
 };

@@ -27,7 +27,12 @@ bool ACentralHubBuilding::IsOperating() const
 
 void ACentralHubBuilding::ConnectToBuilding(ABuilding* Building)
 {
-	if (Building && Building->GetBuildingType() == EBuildingType::EBT_HubLinkedFacility && !ChildBuildings.Contains(Building))
+	if (
+		Building &&
+		Building->GetBuildingType() == EBuildingType::EBT_HubLinkedFacility &&
+		!ChildBuildings.Contains(Building) &&
+		!Building->IsConnectedToParentBuilding()
+		)
 	{
 		ChildBuildings.AddUnique(Building);
 		Building->OnConnectToBuilding(this);
@@ -36,10 +41,25 @@ void ACentralHubBuilding::ConnectToBuilding(ABuilding* Building)
 
 void ACentralHubBuilding::DisconnectToBuilding(ABuilding* Building)
 {
-	if (Building && Building->GetBuildingType() == EBuildingType::EBT_HubLinkedFacility && ChildBuildings.Contains(Building))
+	if (Building && Building->GetBuildingType() == EBuildingType::EBT_HubLinkedFacility && ChildBuildings.Contains(Building) && !Building->IsPreview())
 	{
 		ChildBuildings.Remove(Building);
 		Building->OnDisconnectToBuilding();
+	}
+}
+
+void ACentralHubBuilding::TryConnectToNearByFacility()
+{
+	Super::TryConnectToNearByFacility();
+	TArray<FHitResult> HitResults;
+	TraceBuildingsInBoundary(HitResults);
+	for (FHitResult& HitResult : HitResults)
+	{
+		ABuilding* Building = Cast<ABuilding>(HitResult.GetActor());
+		if (Building)
+		{
+			ConnectToBuilding(Building);
+		}
 	}
 }
 

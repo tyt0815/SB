@@ -19,6 +19,7 @@ public:
 	void ConnectToBuilding(ABuilding* Building);
 	void DisconnectToBuilding(ABuilding* Building);
 	virtual void PropagatePowerState() override;
+	virtual void TryConnectToNearByFacility() override;
 	
 protected:
 	virtual void OnBeginOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;

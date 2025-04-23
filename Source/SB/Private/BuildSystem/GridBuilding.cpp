@@ -2,6 +2,7 @@
 #include "BuildSystem/BuildSystem.h"
 #include "Components/BoxComponent.h"
 #include "Characters/Player/SBPlayer.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "SB/DebugMacro.h"
 
 AGridBuilding::AGridBuilding()
@@ -23,8 +24,8 @@ void AGridBuilding::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GridBoundaryBox->OnComponentBeginOverlap.AddDynamic(this, &AGridBuilding::OnBeginOverlapGridBoundary);
-	GridBoundaryBox->OnComponentEndOverlap.AddDynamic(this, &AGridBuilding::OnEndOverlapGridBoundary);
+	// GridBoundaryBox->OnComponentBeginOverlap.AddDynamic(this, &AGridBuilding::OnBeginOverlapGridBoundary);
+	// GridBoundaryBox->OnComponentEndOverlap.AddDynamic(this, &AGridBuilding::OnEndOverlapGridBoundary);
 }
 
 void AGridBuilding::OnConstruction(const FTransform& Transform)
@@ -41,12 +42,41 @@ void AGridBuilding::OnConstruction(const FTransform& Transform)
 	GridBoundaryMesh->SetRelativeScale3D(Scale + FVector(0.001f, 0.001f, 0.0f));
 }
 
+void AGridBuilding::SetAsPreview()
+{
+	Super::SetAsPreview();
+	GridBoundaryBox->SetGenerateOverlapEvents(false);
+}
+
+void AGridBuilding::TraceBuildingsInBoundary(TArray<FHitResult>& HitResults)
+{
+	FVector Start = GetActorLocation() + FVector::ZAxisVector * GridBoundaryBox->GetScaledBoxExtent().Z;
+	FVector End = GetActorLocation() - FVector::ZAxisVector * GridBoundaryBox->GetScaledBoxExtent().Z;
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel2));	// BuildBlocker
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+	UKismetSystemLibrary::BoxTraceMultiForObjects(
+		this,
+		Start,
+		End,
+		FVector(GridBoundaryBox->GetScaledBoxExtent().X, GridBoundaryBox->GetScaledBoxExtent().Y, 0.0f),
+		FRotator(),
+		ObjectTypes,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		HitResults,
+		false
+	);
+}
+
 void AGridBuilding::OnBeginOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	SCREEN_LOG_NONE_KEY(OtherActor->GetName());
+	
 }
 
 void AGridBuilding::OnEndOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	SCREEN_LOG_NONE_KEY(OtherActor->GetName());
+	
 }

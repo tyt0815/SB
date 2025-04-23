@@ -65,10 +65,14 @@ void ABuildingCreater::CreateBuilding()
 	{
 		if (PreviewBuilding && PreviewBuildingClass)
 		{
-			FActorSpawnParameters SpawnParameters;
-			GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClass, PreviewBuilding->GetTransform());
+			ABuilding* Building = GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClass);
+			if (Building)
+			{
+				FVector Location = PreviewBuilding->GetActorLocation();
+				CancelPreview();
+				Building->Place(Location);
+			}
 		}
-		CancelPreview();
 	}
 }
 
