@@ -30,16 +30,19 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:	
-	virtual void ConnectToHub(ACentralHubBuilding* Hub);
-	virtual void ConnectToPowerFacility(APowerFacility* PowerFacility);
-	virtual void DisconnectToHub(ACentralHubBuilding* Hub);
-	virtual void DisconnectToPowerFacility(APowerFacility* PowerFacility);
+public:
+	void IncreasePowerConsumption(uint16 Power);
+	void DecreasePowerConsumption(uint16 Power);
+	virtual void PropagatePowerState();
 	virtual void OnConstruction(const FTransform& Transform) override;
 	void OnMouseHoverStarted();
 	void OnMouseHoverEnded();
 	void OnSelected();
 	void OnDeselected();
+	virtual void OnConnectToBuilding(ABuilding* Parent);
+	virtual void OnDisconnectToBuilding();
+	void TryConnectToBuilding(ABuilding* Parent);
+	void TryDisconnectToBuilding();
 	float GetZOffset() const;
 	float GetHalfWidth() const;
 	float GetHalfDepth() const;
@@ -50,12 +53,16 @@ public:
 	void SetVisibility(bool bVisibility);
 	void SetAsPreview();
 	void SetAllMaterials(UMaterialInterface* Material);
-	bool IsOperating() const;
+	void SetPowerState(bool bOn);
+	virtual bool IsOperating() const;
+	bool IsPowerOn() const;
+	bool HasSufficientPower() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Building")
 	void SnapLocation(FVector WorldLocation);
 
 protected:
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* BuildBlocker;
 
@@ -74,8 +81,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = Building)
 	bool bSelected = false;
 
-	TArray<ACentralHubBuilding*> LinkedHubs;
-	TArray<APowerFacility*> LinkedPowerFacilitys;
+	ABuilding* ParentBuilding;
+
+	bool bPowerOn = true;
 private:
 	// 외곽선을 그린다. 색상은 PP_HightlightMaterial_Inst 의 색상을 참고.
 	void SetOutlineDraw(bool bDraw, int Color);

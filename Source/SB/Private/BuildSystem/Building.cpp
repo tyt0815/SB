@@ -1,5 +1,7 @@
 #include "BuildSystem/Building.h"
 #include "BuildSystem/BuildSystem.h"
+#include "BuildSystem/CentralHubBuilding.h"
+#include "BuildSystem/PowerFacility.h"
 #include "Components/BoxComponent.h"
 #include "SB/DebugMacro.h"
 
@@ -18,8 +20,7 @@ ABuilding::ABuilding()
 void ABuilding::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	SCREEN_LOG_SINGLE_FRAME(FString::FromInt(IsOperating()));
+	SCREEN_LOG_SINGLE_FRAME(FString::FromInt(PowerConsumption));
 }
 
 void ABuilding::BeginPlay()
@@ -28,36 +29,26 @@ void ABuilding::BeginPlay()
 	SnapLocation(GetActorLocation());
 }
 
-void ABuilding::ConnectToHub(ACentralHubBuilding* Hub)
+void ABuilding::IncreasePowerConsumption(uint16 Power)
 {
-	if (Hub)
+	PowerConsumption += Power;
+	if (ParentBuilding && bPowerOn)
 	{
-		LinkedHubs.AddUnique(Hub);
+		ParentBuilding->IncreasePowerConsumption(Power);
 	}
 }
 
-void ABuilding::ConnectToPowerFacility(APowerFacility* PowerFacility)
+void ABuilding::DecreasePowerConsumption(uint16 Power)
 {
-	if (PowerFacility)
+	PowerConsumption -= Power;
+	if (ParentBuilding && !bPowerOn)
 	{
-		LinkedPowerFacilitys.AddUnique(PowerFacility);
+		ParentBuilding->DecreasePowerConsumption(Power);
 	}
 }
 
-void ABuilding::DisconnectToHub(ACentralHubBuilding* Hub)
+void ABuilding::PropagatePowerState()
 {
-	if (Hub)
-	{
-		LinkedHubs.Remove(Hub);
-	}
-}
-
-void ABuilding::DisconnectToPowerFacility(APowerFacility* PowerFacility)
-{
-	if (PowerFacility)
-	{
-		LinkedPowerFacilitys.Remove(PowerFacility);
-	}
 }
 
 void ABuilding::OnConstruction(const FTransform& Transform)
@@ -93,6 +84,89 @@ void ABuilding::OnDeselected()
 {
 	bSelected = false;
 	SetOutlineDraw(false, 0);
+}
+
+void ABuilding::OnConnectToBuilding(ABuilding* Parent)
+{
+	if (Parent && Parent != ParentBuilding)
+	{
+		TryDisconnectToBuilding();
+		if (bPowerOn)
+		{
+			Parent->IncreasePowerConsumption(PowerConsumption);
+		}
+		ParentBuilding = Parent;
+	}
+}
+
+void ABuilding::OnDisconnectToBuilding()
+{
+	if (ParentBuilding)
+	{
+		if (bPowerOn)
+		{
+			ParentBuilding->DecreasePowerConsumption(PowerConsumption);
+		}
+	}
+	ParentBuilding = nullptr;
+}
+
+void ABuilding::TryConnectToBuilding(ABuilding* Parent)
+{
+	switch (BuildingType)
+	{
+	case EBuildingType::EBT_StandAlone:
+		break;
+	case EBuildingType::EBT_HubLinkedFacility:
+	{
+		ACentralHubBuilding* Hub = Cast<ACentralHubBuilding>(Parent);
+		if (Hub)
+		{
+			Hub->ConnectToBuilding(this);
+		}
+		break;
+	}
+	case EBuildingType::EBT_PowerLinkedFacility:
+	{
+		APowerFacility* PowerFacility = Cast<APowerFacility>(Parent);
+		if (PowerFacility)
+		{
+			PowerFacility->ConnectToBuilding(this);
+		}
+	}
+		break;
+	default:
+		break;
+	}
+}
+
+void ABuilding::TryDisconnectToBuilding()
+{
+	switch (BuildingType)
+	{
+	case EBuildingType::EBT_StandAlone:
+		break;
+	case EBuildingType::EBT_HubLinkedFacility:
+	{
+		ACentralHubBuilding* Hub = Cast<ACentralHubBuilding>(ParentBuilding);
+		if (Hub)
+		{
+			Hub->DisconnectToBuilding(this);
+		}
+		break;
+	}
+	case EBuildingType::EBT_PowerLinkedFacility:
+	{
+		APowerFacility* PowerFacility = Cast<APowerFacility>(ParentBuilding);
+		if (PowerFacility)
+		{
+			PowerFacility->DisconnectToBuilding(this);
+		}
+	}
+	break;
+	default:
+		break;
+	}
 }
 
 float ABuilding::GetZOffset() const
@@ -157,32 +231,47 @@ void ABuilding::SetAllMaterials(UMaterialInterface* Material)
 	}
 }
 
-bool ABuilding::IsOperating() const
+void ABuilding::SetPowerState(bool bOn)
 {
-	switch (BuildingType)
+	if (bPowerOn != bOn)
 	{
-	case EBuildingType::EBT_StandAlone:
-		return true;
-	case EBuildingType::EBT_HubLinkedFacility:
-		if (LinkedHubs.Num() > 0)
+		bPowerOn = bOn;
+
+		if (ParentBuilding)
 		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	case EBuildingType::EBT_PowerLinkedFacility:
-		if (LinkedPowerFacilitys.Num() > 0)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
+			if (bPowerOn)
+			{
+				ParentBuilding->IncreasePowerConsumption(PowerConsumption);
+			}
+			else
+			{
+				ParentBuilding->DecreasePowerConsumption(PowerConsumption);
+			}
+
 		}
 	}
-	return false;
+}
+
+bool ABuilding::IsOperating() const
+{
+	return IsPowerOn() && HasSufficientPower();
+}
+
+bool ABuilding::IsPowerOn() const
+{
+	return bPowerOn;
+}
+
+bool ABuilding::HasSufficientPower() const
+{
+	if (BuildingType == EBuildingType::EBT_StandAlone)
+	{
+		return true;
+	}
+	else
+	{
+		return ParentBuilding->IsOperating();
+	}
 }
 
 void ABuilding::SnapLocation(FVector WorldLocation)

@@ -23,16 +23,8 @@ void AGridBuilding::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GridBoundaryBox->OnComponentBeginOverlap.AddDynamic(this, &AGridBuilding::OnPlayerBeginOverlapGridBoundary);
-	GridBoundaryBox->OnComponentEndOverlap.AddDynamic(this, &AGridBuilding::OnPlayerEndOverlapGridBoundary);
-
-	TSet<AActor*> OverlappingActors;
-	GridBoundaryBox->GetOverlappingActors(OverlappingActors);
-	OverlappingActors.Remove(this);
-	for (AActor* OverlappingActor : OverlappingActors)
-	{
-		OnPlayerBeginOverlapGridBoundary(nullptr, OverlappingActor, nullptr, 0, false, FHitResult());
-	}
+	GridBoundaryBox->OnComponentBeginOverlap.AddDynamic(this, &AGridBuilding::OnBeginOverlapGridBoundary);
+	GridBoundaryBox->OnComponentEndOverlap.AddDynamic(this, &AGridBuilding::OnEndOverlapGridBoundary);
 }
 
 void AGridBuilding::OnConstruction(const FTransform& Transform)
@@ -49,12 +41,12 @@ void AGridBuilding::OnConstruction(const FTransform& Transform)
 	GridBoundaryMesh->SetRelativeScale3D(Scale + FVector(0.001f, 0.001f, 0.0f));
 }
 
-void AGridBuilding::OnPlayerBeginOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AGridBuilding::OnBeginOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	SCREEN_LOG_NONE_KEY(OtherActor->GetName());
 }
 
-void AGridBuilding::OnPlayerEndOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void AGridBuilding::OnEndOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	SCREEN_LOG_NONE_KEY(OtherActor->GetName());
 }

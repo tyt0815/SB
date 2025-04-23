@@ -22,10 +22,10 @@ public:
 
 protected:
 	UFUNCTION()
-	virtual void OnPlayerBeginOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	virtual void OnBeginOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	virtual void OnPlayerEndOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	virtual void OnEndOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
@@ -38,6 +38,6 @@ protected:
 	FIntVector GridExtent = FIntVector(1, 1, 1);
 
 	UPROPERTY(VisibleAnywhere, Category = "Building")
-	TArray<ABuilding*> LinkedBuilding;
+	TArray<ABuilding*> ChildBuildings;
 private:
 };
