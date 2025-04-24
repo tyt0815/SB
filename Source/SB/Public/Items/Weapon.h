@@ -29,17 +29,10 @@ public:
 	void SetMeshVisibleWithEffect(bool bVisible);
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USkeletalMeshComponent* Mesh;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	EWeaponType WeaponType;
 
 public:
-	FORCEINLINE USkeletalMeshComponent* GetMesh() const
-	{
-		return Mesh;
-	}
 	FORCEINLINE EWeaponType GetWeaponType() const
 	{
 		return WeaponType;

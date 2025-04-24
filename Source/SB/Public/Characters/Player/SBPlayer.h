@@ -13,6 +13,7 @@ class UInputMappingContext;
 class UInputAction;
 class USpringArmComponent;
 class UCameraComponent;
+class UInventoryComponent;
 class AWeapon;
 class ABuilding;
 class ABuildCameraPawn;
@@ -91,6 +92,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	UCameraComponent* FollowCamera;
 
+	UPROPERTY(EditDefaultsOnly, Category = SBPlayer)
+	UInventoryComponent* Inventory;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera)
 	FVector ZoomOutCameraLoaction = FVector(500.0f, 0.0f, 120.0f);
 
@@ -119,6 +123,7 @@ private:
 	void MouseLCompleted();
 	void RStarted();
 	void BStarted();
+	void IStarted();
 	void MouseRStarted();
 	void NumberKeysStarted(uint32 i);
 	void Number1Started();
@@ -173,6 +178,9 @@ private:
 	UInputAction* BInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UInputAction* IInputAction;
+
+	UPROPERTY(EditAnywhere, Category = EnhancedInput)
 	UInputAction* MouseRInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
@@ -193,6 +201,8 @@ private:
 	
 	ABuildCameraPawn* BuildCameraPawn;
 	ABuildingCreater* BuildingCreater;
+	class ASBHUD* HUD;
+	class USBPlayerOverlayWidget* OverlayWidget;
 	FName RightHandSocketName = "hand_r_Socket";
 	float JogScale = 1.0f;
 	float WalkScale = 0.4f;

@@ -4,6 +4,7 @@
 #include "BuildSystem/BuildingCreater.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/InventoryComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -15,6 +16,8 @@
 #include "PlayerController/SBPlayerController.h"
 #include "Kismet/KismetStringLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "HUDs/SBHUD.h"
+#include "HUDs/SBPlayerOverlayWidget.h"
 
 ASBPlayer::ASBPlayer()
 {
@@ -50,6 +53,8 @@ ASBPlayer::ASBPlayer()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);	// ī�޶� ������ �Ͽ� �����ǵ��� ����. USpringArmComponent::SocketName�� "SpringEndPoint"�� ������ �� ���κп� �����ǵ��� ����
 	FollowCamera->bUsePawnControlRotation = false;	// ī�޶� ��Ʈ�ѷ��� ���� ȸ������ �ʵ��� ����
 
+	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
+
 	// �迭 �ʱ�ȭ
 	WeaponQuickslot.SetNum(3);
 }
@@ -74,6 +79,7 @@ void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(MouseLInpuatAction, ETriggerEvent::Completed, this, &ASBPlayer::MouseLCompleted);
 		EnhancedInputComponent->BindAction(RInputAction, ETriggerEvent::Started, this, &ASBPlayer::RStarted);
 		EnhancedInputComponent->BindAction(BInputAction, ETriggerEvent::Started, this, &ASBPlayer::BStarted);
+		EnhancedInputComponent->BindAction(IInputAction, ETriggerEvent::Started, this, &ASBPlayer::IStarted);
 		EnhancedInputComponent->BindAction(TabInputAction, ETriggerEvent::Started, this, &ASBPlayer::TabStarted);
 		EnhancedInputComponent->BindAction(CapsLockInputAction, ETriggerEvent::Started, this, &ASBPlayer::CapsLockStarted);
 		if (NumberInputActions.IsValidIndex(1) && NumberInputActions[1])
@@ -109,6 +115,21 @@ void ASBPlayer::BeginPlay()
 	}
 
 	SpawnBuildingCreater();
+
+	// UI
+	ASBPlayerController* PlayerController = Cast<ASBPlayerController>(GetController());
+	if (PlayerController)
+	{
+		HUD = Cast<ASBHUD>(PlayerController->GetHUD());
+		if (HUD)
+		{
+			OverlayWidget = HUD->GetPlayerOverlay();
+			if (OverlayWidget)
+			{
+				OverlayWidget->CloseInventoryWidget();
+			}
+		}
+	}
 }
 
 void ASBPlayer::StockWeaponInQuickSlot(AWeapon* Weapon, uint32 Index)
@@ -212,7 +233,7 @@ FTransform ASBPlayer::GetLHIKTransform() const
 	AWeapon* Weapon = GetCurrentWeapon();
 	if (Weapon != nullptr)
 	{
-		FTransform Transform = Weapon->GetMesh()->GetSocketTransform(FName("LHIK"));
+		FTransform Transform = Weapon->GetSkeletalMesh()->GetSocketTransform(FName("LHIK"));
 		FVector Location;
 		FRotator Rotator;
 		GetMesh()->TransformToBoneSpace("hand_r", Transform.GetLocation(), Transform.GetRotation().Rotator(), Location, Rotator);
@@ -337,6 +358,15 @@ void ASBPlayer::BStarted()
 	}
 }
 
+void ASBPlayer::IStarted()
+{
+	
+	if (OverlayWidget)
+	{
+		OverlayWidget->OpenInventoryWidget(Inventory);
+	}
+}
+
 void ASBPlayer::MouseRStarted()
 {
 	if (IsUnarmed() || ZoomState == ECharacterZoomState::ECZS_Zooming)
@@ -442,7 +472,7 @@ void ASBPlayer::SetWeaponVisibility(AWeapon* Weapon, bool bVisibility, bool bEff
 		}
 		else
 		{
-			Weapon->GetMesh()->SetVisibility(bVisibility);
+			Weapon->GetSkeletalMesh()->SetVisibility(bVisibility);
 		}
 	}
 }
@@ -461,7 +491,7 @@ void ASBPlayer::AttachWeapon(AWeapon* Weapon, FName SocketName)
 	if (Weapon)
 	{
 		FAttachmentTransformRules AttachmentTransformRules(EAttachmentRule::SnapToTarget, true);
-		Weapon->GetMesh()->AttachToComponent(GetMesh(), AttachmentTransformRules, SocketName);
+		Weapon->GetSkeletalMesh()->AttachToComponent(GetMesh(), AttachmentTransformRules, SocketName);
 	}
 }
 
@@ -469,7 +499,7 @@ void ASBPlayer::DettachWeapon(AWeapon* Weapon)
 {
 	if (Weapon)
 	{
-		Weapon->GetMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		Weapon->GetSkeletalMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 	}
 }
 

@@ -9,7 +9,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Characters/Player/SBPlayer.h"
 #include "SB/DebugMacro.h"
-# include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 
 AGun::AGun()
@@ -72,7 +72,7 @@ bool AGun::CanReload() const
 
 bool AGun::IsReloading() const
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	UAnimInstance* AnimInstance = SkeletalMesh->GetAnimInstance();
 	if (AnimInstance && ReloadMontage)
 	{
 		return AnimInstance->Montage_IsPlaying(ReloadMontage);
@@ -139,8 +139,8 @@ void AGun::Reload()
 FTransform AGun::CalcBulletSpawnTransform()
 {
 	FTransform Transform;
-	Transform.SetLocation(GetMesh()->GetSocketLocation("Muzzle"));
-	Transform.SetRotation(GetMesh()->GetSocketRotation("Muzzle").Quaternion());
+	Transform.SetLocation(SkeletalMesh->GetSocketLocation("Muzzle"));
+	Transform.SetRotation(SkeletalMesh->GetSocketRotation("Muzzle").Quaternion());
 	Transform.SetScale3D(FVector::OneVector);
 	ASBPlayer* Player = Cast<ASBPlayer>(GetOwner());
 	if (Player)
@@ -186,7 +186,7 @@ void AGun::BeginPlay()
 	Super::BeginPlay();
 	AmmoCount = MaxAmmo;
 
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	UAnimInstance* AnimInstance = SkeletalMesh->GetAnimInstance();
 	if (AnimInstance)
 	{
 		AnimInstance->OnPlayMontageNotifyEnd.AddDynamic(this, &AGun::Test);

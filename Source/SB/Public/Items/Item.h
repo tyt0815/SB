@@ -10,17 +10,62 @@ UCLASS()
 class SB_API AItem : public AActor
 {
 	GENERATED_BODY()
-	
 public:	
-	// Sets default values for this actor's properties
 	AItem();
+	virtual void Tick(float DeltaTime) override;
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
+
+protected:
+	UFUNCTION()
+	void OnInteractionRangeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UPROPERTY(EditAnywhere, Category = Components)
+	class USphereComponent* InteractionRange;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UStaticMeshComponent* StaticMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USkeletalMeshComponent* SkeletalMesh;
+
+	UPROPERTY(EditAnywhere, Category = Item)
+	FName ItemName;
+
+	UPROPERTY(EditAnywhere, Category = Item)
+	UTexture2D* Thumnail;
+
+	UPROPERTY(EditAnywhere, Category = Item)
+	bool bStackable;
+
+private:
+	void ActivateStaticMesh(bool bActive);
+	void ActivateSkeletalMesh(bool bActive);
+
+public:
+	FORCEINLINE FName GetItemName() const
+	{
+		return ItemName;
+	}
+	FORCEINLINE UTexture2D* GetThumnail() const
+	{
+		return Thumnail;
+	}
+	FORCEINLINE bool IsStackable() const
+	{
+		return bStackable;
+	}
+	FORCEINLINE UStaticMeshComponent* GetStaticMesh() const
+	{
+		return StaticMesh;
+	}
+	FORCEINLINE USkeletalMeshComponent* GetSkeletalMesh() const
+	{
+		return SkeletalMesh;
+	}
 };
