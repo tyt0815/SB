@@ -1,19 +1,18 @@
 #include "Items/Item.h"
 #include "Components/SphereComponent.h"
+#include "Components/InteractionComponent.h"
 #include "SB/DebugMacro.h"
 #include "Characters/Player/SBPlayer.h"
 
 AItem::AItem()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	InteractionRange = CreateDefaultSubobject<USphereComponent>(TEXT("InteractionRange"));
-	SetRootComponent(InteractionRange);
-	InteractionRange->SetCollisionProfileName(TEXT("InteractionRange"));
-
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
-	StaticMesh->SetupAttachment(GetRootComponent());
+	SetRootComponent(StaticMesh);
 	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
 	SkeletalMesh->SetupAttachment(GetRootComponent());
+
+	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
 }
 
 void AItem::Tick(float DeltaTime)
@@ -46,20 +45,6 @@ void AItem::BeginPlay()
 	else
 	{
 		ActivateSkeletalMesh(false);
-	}
-
-	InteractionRange->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnInteractionRangeBeginOverlap);
-}
-
-void AItem::OnInteractionRangeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	ASBPlayer* Player = Cast<ASBPlayer>(OtherActor);
-	if (Player)
-	{
-		if (Player->PickUpItem(this))
-		{
-			Destroy();
-		}
 	}
 }
 

@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InventoryComponent.h"
+#include "Components/InteractionComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -16,6 +17,7 @@
 #include "PlayerController/SBPlayerController.h"
 #include "Kismet/KismetStringLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "HUDs/SBHUD.h"
 #include "HUDs/SBPlayerOverlayWidget.h"
 
@@ -63,6 +65,10 @@ void ASBPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	SetBuildingCreaterLocation();
+	TraceInteractionActors();
+	SelectInteraction();
+	if(TargetInterAction)
+		SCREEN_LOG_SINGLE_FRAME(TargetInterAction->GetOwner()->GetName());
 }
 
 void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -723,4 +729,78 @@ void ASBPlayer::ConvertToUIUseMode(bool bUse)
 	{
 		PlayerController->SetMouseInterface(bUse);
 	}
+}
+
+void ASBPlayer::TraceInteractionActors()
+{
+	InteractionList.Empty();
+	
+	FVector Start = GetActorLocation();
+	FVector End = Start + GetActorForwardVector() * InteractionRange;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+	FHitResult HitResult;
+	while (true)
+	{
+		UKismetSystemLibrary::BoxTraceSingle(
+			this,
+			Start,
+			End,
+			FVector(0.0f, GetCapsuleComponent()->GetScaledCapsuleRadius() * 2, GetCapsuleComponent()->GetScaledCapsuleHalfHeight()),
+			GetActorForwardVector().Rotation(),
+			UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility),
+			false,
+			ActorsToIgnore,
+			EDrawDebugTrace::None,
+			HitResult,
+			true
+		);
+		AActor* Actor = HitResult.GetActor();
+		if (!Actor)
+		{
+			break;
+		}
+		ActorsToIgnore.Add(Actor);
+		UInteractionComponent* InteractionComponent = Actor->GetComponentByClass<UInteractionComponent>();
+		if (InteractionComponent)
+		{
+			InteractionList.AddUnique(InteractionComponent);
+		}
+	}
+}
+
+void ASBPlayer::SelectInteraction()
+{
+	TargetInterAction = nullptr;
+	if (!InteractionList.IsValidIndex(0))
+	{
+		return;
+	}
+	TargetInterAction = InteractionList[0];
+	AActor* Target = TargetInterAction->GetOwner();
+	if (!Target)
+	{
+		return;
+	}
+
+	float AoT = ForwardVectorDot(UKismetMathLibrary::Normal(Target->GetActorLocation() - GetActorLocation()));
+	for (int i = 1; i < InteractionList.Num(); ++i)
+	{
+		AActor* NewActor = InteractionList[i]->GetOwner();
+		if (NewActor)
+		{
+			float AoN = ForwardVectorDot(UKismetMathLibrary::Normal(NewActor->GetActorLocation() - GetActorLocation()));
+			if (AoN > AoT)
+			{
+				AoT = AoN;
+				Target = NewActor;
+				TargetInterAction = InteractionList[i];
+			}
+		}
+	}
+}
+
+float ASBPlayer::ForwardVectorDot(FVector B)
+{
+	return GetActorForwardVector().Dot(B);
 }

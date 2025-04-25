@@ -14,6 +14,7 @@ class UInputAction;
 class USpringArmComponent;
 class UCameraComponent;
 class UInventoryComponent;
+class UInteractionComponent;
 class AItem;
 class AWeapon;
 class ABuilding;
@@ -155,6 +156,9 @@ private:
 	void SpawnAndStockWeapon(uint32 i);
 	void SetBuildingCreaterLocation();
 	void ConvertToUIUseMode(bool bUse);
+	void TraceInteractionActors();
+	void SelectInteraction();
+	float ForwardVectorDot(FVector B);
 
 	/*
 	* Enhanced Input
@@ -192,16 +196,14 @@ private:
 	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* CapsLockInputAction;
 
-	/*
-	* Montages
-	*/
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | Interaction")
+	float InteractionRange = 150.0f;
+
 	UPROPERTY(EditDefaultsOnly, Category = "SBPlayer | Montages")
 	TMap<EWeaponType, FWeaponMontageSet> WeaponMontages;
-
-	/*
-	* etc
-	*/
 	
+	TArray<UInteractionComponent*> InteractionList;
+	UInteractionComponent* TargetInterAction = nullptr;
 	ABuildCameraPawn* BuildCameraPawn;
 	ABuildingCreater* BuildingCreater;
 	class ASBHUD* HUD;
