@@ -7,6 +7,7 @@
 class UWrapBox;
 class UItemSlotWidget;
 class UInventoryComponent;
+struct FInventoryItemInfo;
 
 UCLASS()
 class SB_API USBPlayerInventoryWidget : public UUserWidget
@@ -15,13 +16,15 @@ class SB_API USBPlayerInventoryWidget : public UUserWidget
 
 public:
 	void UpdateInventory(UInventoryComponent* InventoryComponent);
+	void UpdateItemSlotWidget(const FInventoryItemInfo* const Item, int i);
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SBPlayerInventoryWidget")
+	TSubclassOf<UItemSlotWidget> ItemSlotClass;
 	
 private:
 	UPROPERTY(meta = (BindWidget))
 	UWrapBox* WrapBox;
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UItemSlotWidget> ItemSlotWidgetClass;
 
 	TArray<UItemSlotWidget*> ItemSlots;
 };

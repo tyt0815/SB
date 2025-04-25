@@ -5,6 +5,7 @@
 #include "InventoryComponent.generated.h"
 
 class AItem;
+class USBPlayerInventoryWidget;
 
 struct FInventoryItemInfo
 {
@@ -28,21 +29,39 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:	
+public:
+	void SetInventoryItemInfo(const FInventoryItemInfo& Item, int i);
+	void UpdateItemWidget(int i);
 	FInventoryItemInfo ToInventoryItemInfo(AItem* Item);
 	bool AddItem(const FInventoryItemInfo& Item);
 	bool AddItem(AItem* Item);
-	AItem* TakeItem(int i);
+	FInventoryItemInfo RemoveItem(int Index, int Quantity);
+	void DropItem(int Index, int Quantity);
+
+protected:
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = Inventory)
 	int InventorySize = 50;
 
+	USBPlayerInventoryWidget* InventoryWidget;
 	TArray<FInventoryItemInfo> Inventory;
 
 public:
 	FORCEINLINE const TArray<FInventoryItemInfo>& GetInventory() const
 	{
 		return Inventory;
+	}
+	FORCEINLINE const int GetInventorySize() const
+	{
+		return InventorySize;
+	}
+	FORCEINLINE const FInventoryItemInfo& GetItemInfo(int i) const
+	{
+		return Inventory[i];
+	}
+	FORCEINLINE void SetInventoryWidget(USBPlayerInventoryWidget* Widget)
+	{
+		InventoryWidget = Widget;
 	}
 };

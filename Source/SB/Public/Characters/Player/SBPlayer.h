@@ -14,6 +14,7 @@ class UInputAction;
 class USpringArmComponent;
 class UCameraComponent;
 class UInventoryComponent;
+class AItem;
 class AWeapon;
 class ABuilding;
 class ABuildCameraPawn;
@@ -54,10 +55,11 @@ public:
 	void PlayFireMontage(AWeapon* Weapon);
 	void PlayReloadMontage(AWeapon* Weapon);
 	void PlayEquipMontage(AWeapon* Weapon);
+	bool PickUpItem(AItem* Item);
 	bool IsFireReady() const;
 	TArray<TSubclassOf<ABuilding>> GetBuildingList();
 
-	UFUNCTION(BlueprintNativeEvent, Category = "BuildSystem")
+	UFUNCTION(BlueprintNativeEvent, Category = SBPlayer)
 	void OnPlayerPossessStarted();
 	virtual void OnPlayerPossessStarted_Implementation();
 
@@ -70,7 +72,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeapon* GetCurrentWeapon() const;
 
-	UPROPERTY(BlueprintReadOnly, Category = States)
+	UPROPERTY(BlueprintReadOnly, Category = SBPlayer)
 	ECharacterZoomState ZoomState;
 
 	// GunAnimNotify Functions
@@ -86,31 +88,31 @@ protected:
 	void ZoomOut();
 	virtual void ZoomOut_Implementation();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
 	USpringArmComponent* CameraBoom;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
 	UCameraComponent* FollowCamera;
 
-	UPROPERTY(EditDefaultsOnly, Category = SBPlayer)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
 	UInventoryComponent* Inventory;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = SBPlayer)
 	FVector ZoomOutCameraLoaction = FVector(500.0f, 0.0f, 120.0f);
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = SBPlayer)
 	FVector ZoomInCameraLoaction = FVector(200.0f, 70.0f, 70.0f);
 
-	UPROPERTY(EditAnywhere, Category = Weapon)
+	UPROPERTY(EditAnywhere, Category = SBPlayer)
 	TArray<TSubclassOf<AWeapon>> WeaponClasses;
 
-	UPROPERTY(EditAnywhere, Category = BuildSystem)
+	UPROPERTY(EditAnywhere, Category = SBPlayer)
 	TSubclassOf<ABuildCameraPawn> BuildCameraPawnClass;
 
-	UPROPERTY(EditAnywhere, Category = BuildSystem)
+	UPROPERTY(EditAnywhere, Category = SBPlayer)
 	TSubclassOf<ABuildingCreater> BuildingCreaterClass;
 
-	UPROPERTY(EditAnywhere, Category = BuildSystem)
+	UPROPERTY(EditAnywhere, Category = SBPlayer)
 	TArray<TSubclassOf<ABuilding>> BuildingClasses;
 
 	TArray<AWeapon*> WeaponQuickslot;
@@ -152,47 +154,48 @@ private:
 	void SpawnBuildingCreater();
 	void SpawnAndStockWeapon(uint32 i);
 	void SetBuildingCreaterLocation();
+	void ConvertToUIUseMode(bool bUse);
 
 	/*
 	* Enhanced Input
 	*/
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputMappingContext* DefaultMappingContext;
 
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* LookInputAction;
 
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* MoveInputAction;
 
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	TArray<UInputAction*> NumberInputActions;
 
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* MouseLInpuatAction;
 
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* RInputAction;
 
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* BInputAction;
 
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* IInputAction;
 
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* MouseRInputAction;
 
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* TabInputAction;
 
-	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* CapsLockInputAction;
 
 	/*
 	* Montages
 	*/
-	UPROPERTY(EditDefaultsOnly, Category = "Montages")
+	UPROPERTY(EditDefaultsOnly, Category = "SBPlayer | Montages")
 	TMap<EWeaponType, FWeaponMontageSet> WeaponMontages;
 
 	/*
@@ -209,6 +212,7 @@ private:
 	float MovementSpeedScale;
 	uint16 CurrentWeaponIndex = 0;
 	bool bUnArmed = true;
+	bool bUseUI = false;
 	EUpperBodyState UpperBodyState = EUpperBodyState::EUBS_Idle;
 	ECharacterControllMode ControllMode = ECharacterControllMode::ECCM_Combat;
 

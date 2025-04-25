@@ -56,7 +56,10 @@ void AItem::OnInteractionRangeBeginOverlap(UPrimitiveComponent* OverlappedCompon
 	ASBPlayer* Player = Cast<ASBPlayer>(OtherActor);
 	if (Player)
 	{
-		
+		if (Player->PickUpItem(this))
+		{
+			Destroy();
+		}
 	}
 }
 

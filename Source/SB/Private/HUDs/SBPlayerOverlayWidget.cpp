@@ -11,16 +11,26 @@ void USBPlayerOverlayWidget::SetPlayerInventoryVisibility(ESlateVisibility Slate
 	}
 }
 
+void USBPlayerOverlayWidget::SetPlayerInventoryEnabled(bool bEnable)
+{
+	if (PlayerInventory)
+	{
+		PlayerInventory->SetIsEnabled(bEnable);
+	}
+}
+
 void USBPlayerOverlayWidget::OpenInventoryWidget(UInventoryComponent* InventoryComponent)
 {
 	bInventoryOpened = true;
 	SetPlayerInventoryVisibility(ESlateVisibility::Visible);
+	SetPlayerInventoryEnabled(true);
 	UpdateInventory(InventoryComponent);
 }
 
 void USBPlayerOverlayWidget::CloseInventoryWidget()
 {
 	bInventoryOpened = false;
+	SetPlayerInventoryEnabled(false);
 	SetPlayerInventoryVisibility(ESlateVisibility::Hidden);
 }
 

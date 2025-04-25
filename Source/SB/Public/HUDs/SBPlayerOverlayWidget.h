@@ -13,6 +13,7 @@ class SB_API USBPlayerOverlayWidget : public UUserWidget
 
 public:
 	void SetPlayerInventoryVisibility(ESlateVisibility SlateVisibility);
+	void SetPlayerInventoryEnabled(bool bEnable);
 	void OpenInventoryWidget(UInventoryComponent* InventoryComponent);
 	void CloseInventoryWidget();
 	void UpdateInventory(UInventoryComponent* InventoryComponent);
@@ -27,5 +28,9 @@ public:
 	FORCEINLINE bool IsInventoryOpened() const
 	{
 		return bInventoryOpened;
+	}
+	FORCEINLINE USBPlayerInventoryWidget* GetPlayerInventoryWidget() const
+	{
+		return PlayerInventory;
 	}
 };

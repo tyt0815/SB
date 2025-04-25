@@ -127,8 +127,11 @@ void ASBPlayer::BeginPlay()
 			if (OverlayWidget)
 			{
 				OverlayWidget->CloseInventoryWidget();
+				Inventory->SetInventoryWidget(OverlayWidget->GetPlayerInventoryWidget());
 			}
 		}
+
+		
 	}
 }
 
@@ -200,6 +203,11 @@ void ASBPlayer::PlayEquipMontage(AWeapon* Weapon)
 			PlayMontage(Montage);
 		}
 	}
+}
+
+bool ASBPlayer::PickUpItem(AItem* Item)
+{
+	return Inventory->AddItem(Item);
 }
 
 bool ASBPlayer::IsFireReady() const
@@ -303,14 +311,17 @@ void ASBPlayer::Move(const FInputActionValue& Value)
 
 void ASBPlayer::Look(const FInputActionValue& Value)
 {
-	// input is a Vector2D
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
-	if (Controller != nullptr)
+	if (!bUseUI)
 	{
-		// add yaw and pitch input to controller
-		AddControllerYawInput(LookAxisVector.X);
-		AddControllerPitchInput(LookAxisVector.Y);
+		// input is a Vector2D
+		FVector2D LookAxisVector = Value.Get<FVector2D>();
+
+		if (Controller != nullptr)
+		{
+			// add yaw and pitch input to controller
+			AddControllerYawInput(LookAxisVector.X);
+			AddControllerPitchInput(LookAxisVector.Y);
+		}
 	}
 }
 
@@ -360,10 +371,18 @@ void ASBPlayer::BStarted()
 
 void ASBPlayer::IStarted()
 {
-	
 	if (OverlayWidget)
 	{
-		OverlayWidget->OpenInventoryWidget(Inventory);
+		if (!bUseUI)
+		{
+			ConvertToUIUseMode(true);
+			OverlayWidget->OpenInventoryWidget(Inventory);
+		}
+		else
+		{
+			ConvertToUIUseMode(false);
+			OverlayWidget->CloseInventoryWidget();
+		}
 	}
 }
 
@@ -649,36 +668,20 @@ void ASBPlayer::SpawnAndStockWeapon(uint32 i)
 
 void ASBPlayer::SetBuildingCreaterLocation()
 {
-	check(BuildingCreater);
-	FVector Start = FollowCamera->GetComponentLocation();
-	FVector End = Start + FollowCamera->GetForwardVector() * 1000.0f;
-	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
-	FHitResult HitResult;
-	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic));
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
-	UKismetSystemLibrary::LineTraceSingleForObjects(
-		this,
-		Start,
-		End,
-		ObjectTypes,
-		false,
-		ActorsToIgnore,
-		EDrawDebugTrace::None,
-		HitResult,
-		true
-	);
-
-	FVector Location = GetActorLocation() - (FVector::ZAxisVector * GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
-	
-	if(!HitResult.GetActor())
+	if (BuildingCreater)
 	{
-		FVector ToGround = End - FVector::ZAxisVector * (500 + End.Z - GetActorLocation().Z);
+		FVector Start = FollowCamera->GetComponentLocation();
+		FVector End = Start + FollowCamera->GetForwardVector() * 1000.0f;
+		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.Add(this);
+		FHitResult HitResult;
+		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic));
+		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
 		UKismetSystemLibrary::LineTraceSingleForObjects(
 			this,
+			Start,
 			End,
-			ToGround,
 			ObjectTypes,
 			false,
 			ActorsToIgnore,
@@ -686,10 +689,38 @@ void ASBPlayer::SetBuildingCreaterLocation()
 			HitResult,
 			true
 		);
+
+		FVector Location = GetActorLocation() - (FVector::ZAxisVector * GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+
+		if (!HitResult.GetActor())
+		{
+			FVector ToGround = End - FVector::ZAxisVector * (500 + End.Z - GetActorLocation().Z);
+			UKismetSystemLibrary::LineTraceSingleForObjects(
+				this,
+				End,
+				ToGround,
+				ObjectTypes,
+				false,
+				ActorsToIgnore,
+				EDrawDebugTrace::None,
+				HitResult,
+				true
+			);
+		}
+		if (HitResult.GetActor())
+		{
+			Location = HitResult.ImpactPoint;
+		}
+		BuildingCreater->SnapLocation(Location);
 	}
-	if (HitResult.GetActor())
+}
+
+void ASBPlayer::ConvertToUIUseMode(bool bUse)
+{
+	bUseUI = bUse;
+	ASBPlayerController* PlayerController = Cast<ASBPlayerController>(GetController());
+	if (PlayerController)
 	{
-		Location = HitResult.ImpactPoint;
+		PlayerController->SetMouseInterface(bUse);
 	}
-	BuildingCreater->SnapLocation(Location);
 }
