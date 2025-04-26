@@ -5,6 +5,7 @@
 #include "SBPlayerOverlayWidget.generated.h"
 
 class UInventoryComponent;
+class UInteractionComponent;
 
 UCLASS()
 class SB_API USBPlayerOverlayWidget : public UUserWidget
@@ -17,10 +18,16 @@ public:
 	void OpenInventoryWidget(UInventoryComponent* InventoryComponent);
 	void CloseInventoryWidget();
 	void UpdateInventory(UInventoryComponent* InventoryComponent);
+	void ShowInteractionList(UInteractionComponent* InteractionComponent);
+	void HideInteractionList();
+	void FocusInteractionDescriptionAt(int32 i);
 	
 private:
 	UPROPERTY(meta = (BindWidget))
 	class USBPlayerInventoryWidget* PlayerInventory;
+
+	UPROPERTY(meta = (BindWidget))
+	class UInteractionListWidget* InteractionList;
 
 	bool bInventoryOpened = false;
 

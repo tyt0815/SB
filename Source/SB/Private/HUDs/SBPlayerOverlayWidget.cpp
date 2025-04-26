@@ -1,5 +1,6 @@
 #include "HUDs/SBPlayerOverlayWidget.h"
 #include "HUDs/SBPlayerInventoryWidget.h"
+#include "HUDs/InteractionListWidget.h"
 #include "Components/InventoryComponent.h"
 #include "SB/DebugMacro.h"
 
@@ -40,4 +41,19 @@ void USBPlayerOverlayWidget::UpdateInventory(UInventoryComponent* InventoryCompo
 	{
 		PlayerInventory->UpdateInventory(InventoryComponent);
 	}
+}
+
+void USBPlayerOverlayWidget::ShowInteractionList(UInteractionComponent* InteractionComponent)
+{
+	InteractionList->Enable(InteractionComponent);
+}
+
+void USBPlayerOverlayWidget::HideInteractionList()
+{
+	InteractionList->Disable();
+}
+
+void USBPlayerOverlayWidget::FocusInteractionDescriptionAt(int32 i)
+{
+	InteractionList->FocusAt(i);
 }

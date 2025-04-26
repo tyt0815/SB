@@ -46,6 +46,20 @@ void AItem::BeginPlay()
 	{
 		ActivateSkeletalMesh(false);
 	}
+
+	AddInteractions();
+}
+
+void AItem::AddInteractions()
+{
+	int i = InteractionComponent->AddInteraction("Pick Up");
+	InteractionComponent->AddInteractionAt(i,this, &AItem::AddToInventory);
+	i = InteractionComponent->AddInteraction("Test");
+}
+
+void AItem::AddToInventory(AActor* OtherActor)
+{
+	SCREEN_LOG_NONE_KEY(OtherActor->GetName());
 }
 
 void AItem::ActivateStaticMesh(bool bActive)

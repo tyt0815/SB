@@ -124,10 +124,11 @@ private:
 	void MouseLStarted();
 	void MouseLOngoing();
 	void MouseLCompleted();
+	void MouseRStarted();
+	void MouseWheelStarted(const FInputActionValue& Value);
 	void RStarted();
 	void BStarted();
 	void IStarted();
-	void MouseRStarted();
 	void NumberKeysStarted(uint32 i);
 	void Number1Started();
 	void Number2Started();
@@ -157,7 +158,7 @@ private:
 	void SetBuildingCreaterLocation();
 	void ConvertToUIUseMode(bool bUse);
 	void TraceInteractionActors();
-	void SelectInteraction();
+	void SelectInteractionActor();
 	float ForwardVectorDot(FVector B);
 
 	/*
@@ -179,6 +180,12 @@ private:
 	UInputAction* MouseLInpuatAction;
 
 	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
+	UInputAction* MouseRInputAction;
+
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
+	UInputAction* MouseWheelInputAction;
+
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* RInputAction;
 
 	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
@@ -186,9 +193,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* IInputAction;
-
-	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
-	UInputAction* MouseRInputAction;
 
 	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* TabInputAction;
@@ -202,8 +206,10 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "SBPlayer | Montages")
 	TMap<EWeaponType, FWeaponMontageSet> WeaponMontages;
 	
-	TArray<UInteractionComponent*> InteractionList;
-	UInteractionComponent* TargetInterAction = nullptr;
+	TArray<AActor*> InteractiveActorList;
+	AActor* FocusedInteractable = nullptr;
+	UInteractionComponent* FocusedInteractionComponent = nullptr;
+	int32 FocusedInteractionOptionIndex = 0;
 	ABuildCameraPawn* BuildCameraPawn;
 	ABuildingCreater* BuildingCreater;
 	class ASBHUD* HUD;

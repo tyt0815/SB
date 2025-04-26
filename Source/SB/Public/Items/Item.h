@@ -22,8 +22,10 @@ protected:
 
 public:	
 
-
 protected:
+	virtual void AddInteractions();
+	void AddToInventory(AActor* OtherActor);
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
 	UStaticMeshComponent* StaticMesh;
 

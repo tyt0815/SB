@@ -4,7 +4,20 @@
 #include "Components/ActorComponent.h"
 #include "InteractionComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionDelegate);
+#define AddInteractionAt(Index, UserObject, FuncName) GetInteractionDelegate(Index)->AddDynamic(UserObject, FuncName);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionDelegate, AActor*, OtherActor);
+
+USTRUCT(BlueprintType)
+struct FInteractionInfo
+{
+	GENERATED_BODY();
+
+public:
+	UPROPERTY(EditAnywhere)
+	FName Description = "Undefined";
+
+	FInteractionDelegate InteractionDelegate;
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SB_API UInteractionComponent : public UActorComponent
@@ -19,18 +32,36 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-#define AddInteraction(Description, UserObject, FuncName) GetInteractionDelegate(Description)->AddDynamic(UserObject, FuncName);
+	int32 AddInteraction(FName Description);
 
 protected:
 
 private:
-	FInteractionDelegate* GetInteractionDelegate(FString Description);
+	TArray<FInteractionInfo> Interactions;
 
-	TMap<FString, int> InteractionDelegateIndices;
-	TArray<FInteractionDelegate> InteractionDelegates;
 public:
-	FORCEINLINE void BroadcastInteraction(FString Description)
+	FORCEINLINE void BroadcastInteraction(int32 Index, AActor* OtherActor)
 	{
-		GetInteractionDelegate(Description)->Broadcast();
+		GetInteractionDelegate(Index)->Broadcast(OtherActor);
+	}
+	FORCEINLINE int32 GetInteractionNum() const
+	{
+		return Interactions.Num();
+	}
+	FORCEINLINE bool IsValidIndex(int32 i)
+	{
+		return Interactions.IsValidIndex(i);
+	}
+	FORCEINLINE FInteractionInfo* GetInteractionInfoAt(int32 i)
+	{
+		return &Interactions[i];
+	}
+	FORCEINLINE FName GetInteractionDescriptionAt(int32 i)
+	{
+		return Interactions[i].Description;
+	}
+	FORCEINLINE FInteractionDelegate* GetInteractionDelegate(int32 i)
+	{
+		return &Interactions[i].InteractionDelegate;
 	}
 };

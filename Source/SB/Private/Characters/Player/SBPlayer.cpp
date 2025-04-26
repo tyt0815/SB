@@ -66,9 +66,9 @@ void ASBPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	SetBuildingCreaterLocation();
 	TraceInteractionActors();
-	SelectInteraction();
-	if(TargetInterAction)
-		SCREEN_LOG_SINGLE_FRAME(TargetInterAction->GetOwner()->GetName());
+	SelectInteractionActor();
+	if(FocusedInteractable)
+		SCREEN_LOG_SINGLE_FRAME(FocusedInteractable->GetName());
 }
 
 void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -79,10 +79,11 @@ void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	{
 		EnhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::Move);
 		EnhancedInputComponent->BindAction(LookInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::Look);
-		EnhancedInputComponent->BindAction(MouseRInputAction, ETriggerEvent::Started, this, &ASBPlayer::MouseRStarted);
 		EnhancedInputComponent->BindAction(MouseLInpuatAction, ETriggerEvent::Started, this, &ASBPlayer::MouseLStarted);
 		EnhancedInputComponent->BindAction(MouseLInpuatAction, ETriggerEvent::Ongoing, this, &ASBPlayer::MouseLOngoing);
 		EnhancedInputComponent->BindAction(MouseLInpuatAction, ETriggerEvent::Completed, this, &ASBPlayer::MouseLCompleted);
+		EnhancedInputComponent->BindAction(MouseRInputAction, ETriggerEvent::Started, this, &ASBPlayer::MouseRStarted);
+		EnhancedInputComponent->BindAction(MouseWheelInputAction, ETriggerEvent::Triggered, this, &ASBPlayer::MouseWheelStarted);
 		EnhancedInputComponent->BindAction(RInputAction, ETriggerEvent::Started, this, &ASBPlayer::RStarted);
 		EnhancedInputComponent->BindAction(BInputAction, ETriggerEvent::Started, this, &ASBPlayer::BStarted);
 		EnhancedInputComponent->BindAction(IInputAction, ETriggerEvent::Started, this, &ASBPlayer::IStarted);
@@ -359,6 +360,36 @@ void ASBPlayer::MouseLCompleted()
 	}
 }
 
+void ASBPlayer::MouseRStarted()
+{
+	if (IsUnarmed() || ZoomState == ECharacterZoomState::ECZS_Zooming)
+	{
+		ZoomOut();
+
+	}
+	else if (ZoomState == ECharacterZoomState::ECZS_NoZoom)
+	{
+		ZoomIn();
+	}
+	else
+	{
+		SCREEN_LOG_NONE_KEY("Undefined ZoomState: ASBPlayer::Zoom");
+	}
+}
+
+void ASBPlayer::MouseWheelStarted(const FInputActionValue& Value)
+{
+	if (FocusedInteractionComponent)
+	{
+		FocusedInteractionOptionIndex = FMath::Clamp<int32>(
+			FocusedInteractionOptionIndex - Value.Get<float>(),
+			0,
+			FocusedInteractionComponent->GetInteractionNum() - 1
+		);
+		OverlayWidget->FocusInteractionDescriptionAt(FocusedInteractionOptionIndex);
+	}
+}
+
 void ASBPlayer::RStarted()
 {
 	if (!IsUnarmed() && GetUpperBodyState() == EUpperBodyState::EUBS_Idle)
@@ -389,23 +420,6 @@ void ASBPlayer::IStarted()
 			ConvertToUIUseMode(false);
 			OverlayWidget->CloseInventoryWidget();
 		}
-	}
-}
-
-void ASBPlayer::MouseRStarted()
-{
-	if (IsUnarmed() || ZoomState == ECharacterZoomState::ECZS_Zooming)
-	{
-		ZoomOut();
-			
-	}
-	else if (ZoomState == ECharacterZoomState::ECZS_NoZoom)
-	{
-		ZoomIn();
-	}
-	else
-	{
-		SCREEN_LOG_NONE_KEY("Undefined ZoomState: ASBPlayer::Zoom");
 	}
 }
 
@@ -733,7 +747,7 @@ void ASBPlayer::ConvertToUIUseMode(bool bUse)
 
 void ASBPlayer::TraceInteractionActors()
 {
-	InteractionList.Empty();
+	InteractiveActorList.Empty();
 	
 	FVector Start = GetActorLocation();
 	FVector End = Start + GetActorForwardVector() * InteractionRange;
@@ -764,39 +778,57 @@ void ASBPlayer::TraceInteractionActors()
 		UInteractionComponent* InteractionComponent = Actor->GetComponentByClass<UInteractionComponent>();
 		if (InteractionComponent)
 		{
-			InteractionList.AddUnique(InteractionComponent);
+			InteractiveActorList.AddUnique(Actor);
 		}
 	}
 }
 
-void ASBPlayer::SelectInteraction()
+void ASBPlayer::SelectInteractionActor()
 {
-	TargetInterAction = nullptr;
-	if (!InteractionList.IsValidIndex(0))
-	{
-		return;
-	}
-	TargetInterAction = InteractionList[0];
-	AActor* Target = TargetInterAction->GetOwner();
-	if (!Target)
-	{
-		return;
-	}
+	// InteractiveActorList에 있는 액터중, Interaction의 갯수가 1개 이상이면서 현재 캐릭터의 forward방향과 캐릭터에서 
+	// InteractionTarget 액터까지 이은 벡터의 각도가 가장 작은 액터를 FocusedInteractable로 선정한다.
 
-	float AoT = ForwardVectorDot(UKismetMathLibrary::Normal(Target->GetActorLocation() - GetActorLocation()));
-	for (int i = 1; i < InteractionList.Num(); ++i)
+	AActor* PrevFocusedInteractable = FocusedInteractable;
+	FocusedInteractable = nullptr;
+	FocusedInteractionComponent = nullptr;
+
+	int i = 0;
+	float AoF = 0;
+	for (i = 0; i < InteractiveActorList.Num(); ++i)
 	{
-		AActor* NewActor = InteractionList[i]->GetOwner();
-		if (NewActor)
+		AActor* NewActor = InteractiveActorList[i];
+		UInteractionComponent* NewInterComp = NewActor->GetComponentByClass<UInteractionComponent>();
+		if (NewInterComp->GetInteractionNum() > 0)
+		{
+			FocusedInteractable = NewActor;
+			FocusedInteractionComponent = NewInterComp;
+			AoF = ForwardVectorDot(UKismetMathLibrary::Normal(FocusedInteractable->GetActorLocation() - GetActorLocation()));
+			break;
+		}
+	}
+	for (; i < InteractiveActorList.Num(); ++i)
+	{
+		AActor* NewActor = InteractiveActorList[i];
+		UInteractionComponent* NewInterComp = NewActor->GetComponentByClass<UInteractionComponent>();
+		if (NewInterComp->GetInteractionNum() > 0)
 		{
 			float AoN = ForwardVectorDot(UKismetMathLibrary::Normal(NewActor->GetActorLocation() - GetActorLocation()));
-			if (AoN > AoT)
+			if (AoN > AoF)
 			{
-				AoT = AoN;
-				Target = NewActor;
-				TargetInterAction = InteractionList[i];
+				AoF = AoN;
+				FocusedInteractable = NewActor;
+				FocusedInteractionComponent = NewInterComp;
 			}
 		}
+	}
+	if (FocusedInteractable == nullptr)
+	{
+		OverlayWidget->HideInteractionList();
+	}
+	if (FocusedInteractable != PrevFocusedInteractable)
+	{
+		OverlayWidget->ShowInteractionList(FocusedInteractionComponent);
+		FocusedInteractionOptionIndex = 0;
 	}
 }
 

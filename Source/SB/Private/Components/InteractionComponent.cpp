@@ -16,13 +16,10 @@ void UInteractionComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
-FInteractionDelegate* UInteractionComponent::GetInteractionDelegate(FString Description)
+int32 UInteractionComponent::AddInteraction(FName Description)
 {
-	if (!InteractionDelegateIndices.Find(Description))
-	{
-		InteractionDelegateIndices.Add(Description, InteractionDelegates.Num());
-		InteractionDelegates.Add(FInteractionDelegate());
-	}
-	int i = InteractionDelegateIndices[Description];
-	return &InteractionDelegates[i];
+	int Index = Interactions.Num();
+	Interactions.Add(FInteractionInfo());
+	Interactions[Index].Description = Description;
+	return Index;
 }
