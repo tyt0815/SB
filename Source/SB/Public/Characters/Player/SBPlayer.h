@@ -129,6 +129,7 @@ private:
 	void RStarted();
 	void BStarted();
 	void IStarted();
+	void FStarted();
 	void NumberKeysStarted(uint32 i);
 	void Number1Started();
 	void Number2Started();
@@ -195,13 +196,16 @@ private:
 	UInputAction* IInputAction;
 
 	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
+	UInputAction* FInputAction;
+
+	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* TabInputAction;
 
 	UPROPERTY(EditAnywhere, Category = "SBPlayer | EnhancedInput")
 	UInputAction* CapsLockInputAction;
 
 	UPROPERTY(EditAnywhere, Category = "SBPlayer | Interaction")
-	float InteractionRange = 150.0f;
+	float InteractionRange = 200.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "SBPlayer | Montages")
 	TMap<EWeaponType, FWeaponMontageSet> WeaponMontages;

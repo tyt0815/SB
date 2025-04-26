@@ -1,6 +1,7 @@
 #include "Items/Item.h"
 #include "Components/SphereComponent.h"
 #include "Components/InteractionComponent.h"
+#include "Components/InventoryComponent.h"
 #include "SB/DebugMacro.h"
 #include "Characters/Player/SBPlayer.h"
 
@@ -53,13 +54,24 @@ void AItem::BeginPlay()
 void AItem::AddInteractions()
 {
 	int i = InteractionComponent->AddInteraction("Pick Up");
-	InteractionComponent->AddInteractionAt(i,this, &AItem::AddToInventory);
+	InteractionComponent->AddInteractionAt(i, this, &AItem::AddToInventory);
+	InteractionComponent->BroadcastInteraction(i, this);
 	i = InteractionComponent->AddInteraction("Test");
 }
 
 void AItem::AddToInventory(AActor* OtherActor)
 {
-	SCREEN_LOG_NONE_KEY(OtherActor->GetName());
+	if (OtherActor)
+	{
+		UInventoryComponent* Inventory = OtherActor->GetComponentByClass<UInventoryComponent>();
+		if (Inventory)
+		{
+			if (Inventory->AddItem(this))
+			{
+				Destroy();
+			}
+		}
+	}
 }
 
 void AItem::ActivateStaticMesh(bool bActive)

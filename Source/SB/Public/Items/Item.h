@@ -24,6 +24,8 @@ public:
 
 protected:
 	virtual void AddInteractions();
+
+	UFUNCTION()
 	void AddToInventory(AActor* OtherActor);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
@@ -42,7 +44,7 @@ protected:
 	UTexture2D* Thumnail;
 
 	UPROPERTY(EditAnywhere, Category = Item)
-	bool bStackable;
+	bool bStackable = true;
 
 private:
 	void ActivateStaticMesh(bool bActive);

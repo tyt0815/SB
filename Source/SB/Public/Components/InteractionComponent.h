@@ -40,10 +40,6 @@ private:
 	TArray<FInteractionInfo> Interactions;
 
 public:
-	FORCEINLINE void BroadcastInteraction(int32 Index, AActor* OtherActor)
-	{
-		GetInteractionDelegate(Index)->Broadcast(OtherActor);
-	}
 	FORCEINLINE int32 GetInteractionNum() const
 	{
 		return Interactions.Num();
@@ -63,5 +59,9 @@ public:
 	FORCEINLINE FInteractionDelegate* GetInteractionDelegate(int32 i)
 	{
 		return &Interactions[i].InteractionDelegate;
+	}
+	FORCEINLINE void BroadcastInteraction(int32 Index, AActor* OtherActor)
+	{
+		GetInteractionDelegate(Index)->Broadcast(OtherActor);
 	}
 };

@@ -67,8 +67,6 @@ void ASBPlayer::Tick(float DeltaTime)
 	SetBuildingCreaterLocation();
 	TraceInteractionActors();
 	SelectInteractionActor();
-	if(FocusedInteractable)
-		SCREEN_LOG_SINGLE_FRAME(FocusedInteractable->GetName());
 }
 
 void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -87,6 +85,7 @@ void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(RInputAction, ETriggerEvent::Started, this, &ASBPlayer::RStarted);
 		EnhancedInputComponent->BindAction(BInputAction, ETriggerEvent::Started, this, &ASBPlayer::BStarted);
 		EnhancedInputComponent->BindAction(IInputAction, ETriggerEvent::Started, this, &ASBPlayer::IStarted);
+		EnhancedInputComponent->BindAction(FInputAction, ETriggerEvent::Started, this, &ASBPlayer::FStarted);
 		EnhancedInputComponent->BindAction(TabInputAction, ETriggerEvent::Started, this, &ASBPlayer::TabStarted);
 		EnhancedInputComponent->BindAction(CapsLockInputAction, ETriggerEvent::Started, this, &ASBPlayer::CapsLockStarted);
 		if (NumberInputActions.IsValidIndex(1) && NumberInputActions[1])
@@ -420,6 +419,14 @@ void ASBPlayer::IStarted()
 			ConvertToUIUseMode(false);
 			OverlayWidget->CloseInventoryWidget();
 		}
+	}
+}
+
+void ASBPlayer::FStarted()
+{
+	if (FocusedInteractionComponent)
+	{
+		FocusedInteractionComponent->BroadcastInteraction(FocusedInteractionOptionIndex, this);
 	}
 }
 
