@@ -31,6 +31,24 @@ void AItem::BeginPlay()
 {
 	Super::BeginPlay();
 
+	InitMeshsVisibilityAndPhysics();
+
+	AddInteractions();
+}
+
+FItemData AItem::MakeItemData()
+{
+	FItemData ItemInfo;
+	ItemInfo.ItemClass = GetClass();
+	ItemInfo.Name = GetItemName();
+	ItemInfo.bStackable = IsStackable();
+	ItemInfo.Thumbnail = GetThumnail();
+	ItemInfo.Quantity = 1;
+	return ItemInfo;
+}
+
+void AItem::InitMeshsVisibilityAndPhysics()
+{
 	if (StaticMesh && StaticMesh->GetStaticMesh())
 	{
 		ActivateStaticMesh(true);
@@ -47,16 +65,12 @@ void AItem::BeginPlay()
 	{
 		ActivateSkeletalMesh(false);
 	}
-
-	AddInteractions();
 }
 
 void AItem::AddInteractions()
 {
 	int i = InteractionComponent->AddInteraction("Pick Up");
 	InteractionComponent->AddInteractionAt(i, this, &AItem::AddToInventory);
-	InteractionComponent->BroadcastInteraction(i, this);
-	i = InteractionComponent->AddInteraction("Test");
 }
 
 void AItem::AddToInventory(AActor* OtherActor)

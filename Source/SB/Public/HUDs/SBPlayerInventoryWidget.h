@@ -7,7 +7,7 @@
 class UWrapBox;
 class UItemSlotWidget;
 class UInventoryComponent;
-struct FInventoryItemInfo;
+struct FItemData;
 
 UCLASS()
 class SB_API USBPlayerInventoryWidget : public UUserWidget
@@ -16,7 +16,7 @@ class SB_API USBPlayerInventoryWidget : public UUserWidget
 
 public:
 	void UpdateInventory(UInventoryComponent* InventoryComponent);
-	void UpdateItemSlotWidget(const FInventoryItemInfo* const Item, int i);
+	void UpdateItemSlotWidget(const FItemData* const Item, int i);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SBPlayerInventoryWidget")

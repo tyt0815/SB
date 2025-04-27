@@ -34,7 +34,7 @@ private:
 	UTextBlock* Quantity;
 
 	UPROPERTY(meta = (BindWidget))
-	UImage* Thumnail;
+	UImage* Thumbnail;
 
 	UInventoryComponent* Inventory;
 

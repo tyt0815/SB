@@ -12,9 +12,11 @@ ABuilding::ABuilding()
 	BuildBlocker = CreateDefaultSubobject<UBoxComponent>("BuildBlocker");
 	BuildBlocker->SetCollisionProfileName("BuildBlocker");
 	SetRootComponent(BuildBlocker);
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
-	Mesh->SetCollisionProfileName("Building");
-	Mesh->SetupAttachment(BuildBlocker);
+	StaticMesh->SetCollisionProfileName("Building");
+	StaticMesh->SetupAttachment(BuildBlocker);
+	SkeletalMesh->SetCollisionProfileName("Building");
+	SkeletalMesh->SetupAttachment(BuildBlocker);
+	bStackable = false;
 }
 
 
@@ -272,15 +274,25 @@ float ABuilding::GetHeight() const
 
 void ABuilding::SetVisibility(bool bVisibility)
 {
-	Mesh->SetVisibility(bVisibility);
-	SetActorLocation(FVector(0.0f, 0.0f, 100000.0f));
+	if (StaticMesh->GetStaticMesh())
+	{
+		StaticMesh->SetVisibility(bVisibility);
+	}
+	if (SkeletalMesh->GetSkeletalMeshAsset())
+	{
+		SkeletalMesh->SetVisibility(bVisibility);
+	}
 }
 
 void ABuilding::SetAsPreview()
 {
-	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SkeletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	BuildBlocker->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	Mesh->bReceivesDecals = false;
+	StaticMesh->bReceivesDecals = false;
+	SkeletalMesh->bReceivesDecals = false;
+	StaticMesh->SetSimulatePhysics(false);
+	SkeletalMesh->SetSimulatePhysics(false);
 	SetActorRelativeLocation(FVector(0.0f, 0.0f, GetZOffset()));
 	bPreview = true;
 }
@@ -289,10 +301,15 @@ void ABuilding::SetAllMaterials(UMaterialInterface* Material)
 {
 	if (Material)
 	{
-		int MaterialCounts = Mesh->GetNumMaterials();
+		int MaterialCounts = StaticMesh->GetNumMaterials();
 		for (int i = 0; i < MaterialCounts; ++i)
 		{
-			Mesh->SetMaterial(i, Material);
+			StaticMesh->SetMaterial(i, Material);
+		}
+		MaterialCounts = SkeletalMesh->GetNumMaterials();
+		for (int i = 0; i < MaterialCounts; ++i)
+		{
+			SkeletalMesh->SetMaterial(i, Material);
 		}
 	}
 }
@@ -345,6 +362,10 @@ void ABuilding::SnapLocation(FVector WorldLocation)
 	SetActorLocation(BuildSystem::SnapLocationXY(WorldLocation));
 }
 
+void ABuilding::InitMeshsVisibilityAndPhysics()
+{
+}
+
 void ABuilding::BeginDestroy()
 {
 	TryDisconnectToBuilding();
@@ -358,9 +379,14 @@ void ABuilding::SetOutlineDraw(bool bDraw, int Color)
 
 void ABuilding::SetRenderCustomDepthStencil(bool bRender, int Stencil)
 {
-	if (Mesh)
+	if (StaticMesh->GetStaticMesh())
 	{
-		Mesh->SetRenderCustomDepth(bRender);
-		Mesh->SetCustomDepthStencilValue(Stencil);
+		StaticMesh->SetRenderCustomDepth(bRender);
+		StaticMesh->SetCustomDepthStencilValue(Stencil);
+	}
+	if (SkeletalMesh->GetSkeletalMeshAsset())
+	{
+		SkeletalMesh->SetRenderCustomDepth(bRender);
+		SkeletalMesh->SetCustomDepthStencilValue(Stencil);
 	}
 }

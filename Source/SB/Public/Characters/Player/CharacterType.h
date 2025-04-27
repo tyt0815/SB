@@ -33,5 +33,6 @@ UENUM(BlueprintType)
 enum class ECharacterControllMode : uint8
 {
 	ECCM_Combat UMETA(DisplayName = "Combat"),
-	ECCM_Build UMETA(DisplayName = "Build")
+	ECCM_Build UMETA(DisplayName = "Build"),
+	ECCM_None UMETA(DisplayName = "None")
 };

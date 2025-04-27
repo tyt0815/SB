@@ -28,7 +28,7 @@ void UItemSlotWidget::SetQuantity(int Value)
 
 void UItemSlotWidget::SetThumnail(UTexture2D* Texture2D)
 {
-	Thumnail->SetBrushFromTexture(Texture2D);
+	Thumbnail->SetBrushFromTexture(Texture2D);
 }
 
 void UItemSlotWidget::OnClicked()

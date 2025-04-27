@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Items/ItemData.h"
 #include "Item.generated.h"
 
 class UInteractionComponent;
@@ -21,8 +22,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	FItemData MakeItemData();
 
 protected:
+	virtual void InitMeshsVisibilityAndPhysics();
 	virtual void AddInteractions();
 
 	UFUNCTION()
@@ -41,7 +44,7 @@ protected:
 	FName ItemName;
 
 	UPROPERTY(EditAnywhere, Category = Item)
-	UTexture2D* Thumnail;
+	UTexture2D* Thumbnail;
 
 	UPROPERTY(EditAnywhere, Category = Item)
 	bool bStackable = true;
@@ -57,7 +60,7 @@ public:
 	}
 	FORCEINLINE UTexture2D* GetThumnail() const
 	{
-		return Thumnail;
+		return Thumbnail;
 	}
 	FORCEINLINE bool IsStackable() const
 	{

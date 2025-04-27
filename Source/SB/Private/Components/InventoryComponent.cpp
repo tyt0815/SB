@@ -18,16 +18,22 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	Inventory.SetNum(InventorySize);
+	SetInventorySize(InventorySize);
 }
 
-void UInventoryComponent::SetInventoryItemInfo(const FInventoryItemInfo& Item, int i)
+void UInventoryComponent::SetInventoryItemInfo(const FItemData& Item, int i)
 {
 	if (Inventory.IsValidIndex(i))
 	{
 		Inventory[i] = Item;
 		UpdateItemWidget(i);
 	}
+}
+
+void UInventoryComponent::SetInventorySize(const int32& Size)
+{
+	InventorySize = Size;
+	Inventory.SetNum(InventorySize);
 }
 
 void UInventoryComponent::UpdateItemWidget(int i)
@@ -38,18 +44,7 @@ void UInventoryComponent::UpdateItemWidget(int i)
 	}
 }
 
-FInventoryItemInfo UInventoryComponent::ToInventoryItemInfo(AItem* Item)
-{
-	FInventoryItemInfo ItemInfo;
-	ItemInfo.ItemClass = Item->GetClass();
-	ItemInfo.Name = Item->GetItemName();
-	ItemInfo.bStackable = Item->IsStackable();
-	ItemInfo.Thumnail = Item->GetThumnail();
-	ItemInfo.Quantity = 1;
-	return ItemInfo;
-}
-
-bool UInventoryComponent::AddItem(const FInventoryItemInfo& Item)
+bool UInventoryComponent::AddItem(const FItemData& Item)
 {
 	if (Item.Quantity > 0 && Item.ItemClass)
 	{
@@ -64,7 +59,7 @@ bool UInventoryComponent::AddItem(const FInventoryItemInfo& Item)
 					SlotIndex = i;
 				}
 			}
-			else if (Inventory[i].ItemClass == ItemClass)
+			else if (Inventory[i].ItemClass == ItemClass && Inventory[i].bStackable)
 			{
 				SlotIndex = i;
 				break;
@@ -73,7 +68,7 @@ bool UInventoryComponent::AddItem(const FInventoryItemInfo& Item)
 
 		if (SlotIndex >= 0)
 		{
-			FInventoryItemInfo& InventoryItem = Inventory[SlotIndex];
+			FItemData& InventoryItem = Inventory[SlotIndex];
 			if (InventoryItem.Quantity < 1)
 			{
 				SetInventoryItemInfo(Item, SlotIndex);
@@ -94,22 +89,21 @@ bool UInventoryComponent::AddItem(AItem* Item)
 {
 	if (Item)
 	{
-		return AddItem(ToInventoryItemInfo(Item));
+		return AddItem(Item->MakeItemData());
 	}
 	
 	return false;
 }
 
-FInventoryItemInfo UInventoryComponent::RemoveItem(int Index, int Quantity)
+FItemData UInventoryComponent::RemoveItem(int Index, int Quantity)
 {
-	FInventoryItemInfo Item;
+	FItemData Item;
 	if (Inventory.IsValidIndex(Index))
 	{
 		Item = Inventory[Index];
 		Item.Quantity = Quantity < Item.Quantity ? Quantity : Item.Quantity;
 		if (Item.Quantity > 0)
 		{
-			SCREEN_LOG_NONE_KEY(TEXT("RemoveItem"));
 			Inventory[Index].Quantity -= Quantity;
 			UpdateItemWidget(Index);
 		}
@@ -119,7 +113,7 @@ FInventoryItemInfo UInventoryComponent::RemoveItem(int Index, int Quantity)
 
 void UInventoryComponent::DropItem(int Index, int Amount)
 {
-	FInventoryItemInfo Item = RemoveItem(Index, Amount);
+	FItemData Item = RemoveItem(Index, Amount);
 	UWorld* World = GetWorld();
 	if (World && Item.ItemClass)
 	{
@@ -134,7 +128,17 @@ void UInventoryComponent::DropItem(int Index, int Amount)
 			FTransform SpawnTransform;
 			SpawnTransform.SetLocation(SpawnLocation);
 			World->SpawnActor<AItem>(Item.ItemClass, SpawnTransform);
-			SCREEN_LOG_NONE_KEY(TEXT("DropItem"));
+		}
+	}
+}
+
+void UInventoryComponent::LogItems()
+{
+	for (const FItemData& Item : Inventory)
+	{
+		if (Item.Quantity > 0)
+		{
+			SCREEN_LOG_SINGLE_FRAME(Item.Name.ToString() + ", " + FString::FromInt(Item.Quantity));
 		}
 	}
 }

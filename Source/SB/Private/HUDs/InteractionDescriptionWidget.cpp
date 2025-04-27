@@ -5,7 +5,6 @@
 
 void UInteractionDescriptionWidget::Focus()
 {
-	SCREEN_LOG_NONE_KEY(TEXT("Focus"));
 	Description->SetColorAndOpacity(FColor(255, 255, 255, 255));
 	Background->SetVisibility(ESlateVisibility::Visible);
 }

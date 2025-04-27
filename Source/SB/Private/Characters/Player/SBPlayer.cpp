@@ -65,8 +65,19 @@ void ASBPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	SetBuildingCreaterLocation();
-	TraceInteractionActors();
-	SelectInteractionActor();
+
+	if (ControllMode != ECharacterControllMode::ECCM_None)
+	{
+		TraceInteractionActors();
+		SelectInteractionActor();
+	}
+	else
+	{
+		OverlayWidget->HideInteractionList();
+		FocusedInteractable = nullptr;
+		FocusedInteractionComponent = nullptr;
+		FocusedInteractionOptionIndex = 0;
+	}
 }
 
 void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -232,6 +243,7 @@ TArray<TSubclassOf<ABuilding>> ASBPlayer::GetBuildingList()
 
 void ASBPlayer::OnPlayerPossessStarted_Implementation()
 {
+	ControllMode = ECharacterControllMode::ECCM_Build;
 	InitializePlayerController();
 }
 
@@ -583,6 +595,7 @@ void ASBPlayer::CapsLockStarted()
 		}
 		if (BuildCameraPawn)
 		{
+			ControllMode = ECharacterControllMode::ECCM_None;
 			BuildingCreater->CancelPreview();
 			TransferPlayerControllerPossessionToPawn(BuildCameraPawn);
 			BuildCameraPawn->OnPlayerPossessStarted();

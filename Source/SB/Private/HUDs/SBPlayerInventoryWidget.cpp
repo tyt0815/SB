@@ -12,7 +12,7 @@ void USBPlayerInventoryWidget::UpdateInventory(UInventoryComponent* InventoryCom
 		APlayerController* Controller = World->GetFirstPlayerController();
 		if (Controller)
 		{
-			const TArray<FInventoryItemInfo>& Inventory = InventoryComponent->GetInventory();
+			const TArray<FItemData>& Inventory = InventoryComponent->GetInventory();
 			for (int i = ItemSlots.Num(); i < Inventory.Num(); ++i)
 			{
 				ItemSlots.Add(CreateWidget<UItemSlotWidget>(Controller, ItemSlotClass));
@@ -21,19 +21,19 @@ void USBPlayerInventoryWidget::UpdateInventory(UInventoryComponent* InventoryCom
 					WrapBox->AddChild(ItemSlots[i]);
 					ItemSlots[i]->SetIndex(i);
 					ItemSlots[i]->SetInventory(InventoryComponent);
-					UpdateItemSlotWidget(&InventoryComponent->GetItemInfo(i), i);
+					UpdateItemSlotWidget(&InventoryComponent->GetItemData(i), i);
 				}
 			}
 		}
 	}
 }
 
-void USBPlayerInventoryWidget::UpdateItemSlotWidget(const FInventoryItemInfo* const Item, int i)
+void USBPlayerInventoryWidget::UpdateItemSlotWidget(const FItemData* const Item, int i)
 {
 	if (ItemSlots.IsValidIndex(i))
 	{
 		UItemSlotWidget* Widget = ItemSlots[i];
 		Widget->SetQuantity(Item->Quantity);
-		Widget->SetThumnail(Item->Thumnail);
+		Widget->SetThumnail(Item->Thumbnail);
 	}
 }

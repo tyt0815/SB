@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Items/Item.h"
 #include "Building.generated.h"
 
 class UBoxComponent;
@@ -19,7 +19,7 @@ enum class EBuildingType : uint8
 };
 
 UCLASS()
-class SB_API ABuilding : public AActor
+class SB_API ABuilding : public AItem
 {
 	GENERATED_BODY()
 	
@@ -65,24 +65,22 @@ public:
 	void SnapLocation(FVector WorldLocation);
 
 protected:
+	virtual void InitMeshsVisibilityAndPhysics() override;
 	virtual void BeginDestroy() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* BuildBlocker;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	UStaticMeshComponent* Mesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Building)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item | Building")
 	FIntVector CellExtent = FIntVector(1, 1, 1);
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Building)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item | Building")
 	EBuildingType BuildingType = EBuildingType::EBT_StandAlone;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Building)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item | Building")
 	int PowerConsumption = 0;
 
-	UPROPERTY(BlueprintReadOnly, Category = Building)
+	UPROPERTY(BlueprintReadOnly, Category = "Item | Building")
 	bool bSelected = false;
 
 	ABuilding* ParentBuilding;
@@ -96,10 +94,6 @@ private:
 	bool bPreview = false;
 
 public:
-	FORCEINLINE UStaticMeshComponent* GetMesh() const
-	{
-		return Mesh;
-	}
 	FORCEINLINE UBoxComponent* GetBuildBlocker() const
 	{
 		return BuildBlocker;

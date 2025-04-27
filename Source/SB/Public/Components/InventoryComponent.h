@@ -2,19 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Items/ItemData.h"
 #include "InventoryComponent.generated.h"
 
 class AItem;
 class USBPlayerInventoryWidget;
-
-struct FInventoryItemInfo
-{
-	TSubclassOf<AItem> ItemClass = nullptr;
-	UTexture2D* Thumnail = nullptr;
-	FName Name;
-	int Quantity = 0;
-	bool bStackable = false;
-};
 
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -30,13 +22,14 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	void SetInventoryItemInfo(const FInventoryItemInfo& Item, int i);
+	void SetInventoryItemInfo(const FItemData& Item, int i);
+	void SetInventorySize(const int32& Size);
 	void UpdateItemWidget(int i);
-	FInventoryItemInfo ToInventoryItemInfo(AItem* Item);
-	bool AddItem(const FInventoryItemInfo& Item);
+	bool AddItem(const FItemData& Item);
 	bool AddItem(AItem* Item);
-	FInventoryItemInfo RemoveItem(int Index, int Quantity);
+	FItemData RemoveItem(int Index, int Quantity);
 	void DropItem(int Index, int Quantity);
+	void LogItems();
 
 protected:
 
@@ -45,10 +38,10 @@ private:
 	int InventorySize = 50;
 
 	USBPlayerInventoryWidget* InventoryWidget;
-	TArray<FInventoryItemInfo> Inventory;
+	TArray<FItemData> Inventory;
 
 public:
-	FORCEINLINE const TArray<FInventoryItemInfo>& GetInventory() const
+	FORCEINLINE const TArray<FItemData>& GetInventory() const
 	{
 		return Inventory;
 	}
@@ -56,7 +49,7 @@ public:
 	{
 		return InventorySize;
 	}
-	FORCEINLINE const FInventoryItemInfo& GetItemInfo(int i) const
+	FORCEINLINE const FItemData& GetItemData(int i) const
 	{
 		return Inventory[i];
 	}
