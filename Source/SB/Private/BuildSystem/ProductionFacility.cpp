@@ -77,9 +77,8 @@ void AProductionFacility::BeginPlay()
 				{
 					InputPorts.Add(Inputport);
 					Inputport->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-					SCREEN_LOG(1, Inputport->GetActorLocation().ToString());
 					Inputport->SetActorRelativeLocation(BuildSystem::GetRelativeLocation(GridCoord));
-					SCREEN_LOG(2, Inputport->GetActorLocation().ToString());
+					Inputport->SetConnectedInventory(ProductionInputs);
 				}
 			}
 		}
@@ -93,6 +92,7 @@ void AProductionFacility::BeginPlay()
 					OutputPorts.Add(OutputPort);
 					OutputPort->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 					OutputPort->SetActorRelativeLocation(BuildSystem::GetRelativeLocation(GridCoord));
+					OutputPort->SetConnectedInventory(ProductionOutputs);
 				}
 			}
 		}
@@ -107,9 +107,7 @@ void AProductionFacility::StartProduction()
 		return;
 	}
 	
-
 	const TArray<FItemData>& Inputs = ProductionInputs->GetInventory();
-
 	for (const FProductionRecipe& Recipe : Recipes)
 	{
 		bool bProductable = true;
@@ -156,6 +154,7 @@ void AProductionFacility::StartProduction()
 			OutputData = Temp->MakeItemData();
 			Temp->Destroy();
 
+			
 			bProducted = true;
 			ProductionTimeLeft = Recipe.ProductionTime;
 			return;

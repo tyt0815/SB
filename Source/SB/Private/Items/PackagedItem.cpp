@@ -14,4 +14,7 @@ void APackagedItem::SetItemData(FItemData Item)
 void APackagedItem::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// TODO:
+	ItemData = MakeItemData();
 }

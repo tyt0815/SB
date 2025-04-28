@@ -101,7 +101,7 @@ bool UInventoryComponent::AddItem(AItem* Item)
 
 bool UInventoryComponent::AddItem(APackagedItem* PackagedItem)
 {
-	if (PackagedItem)
+	if (IsValid(PackagedItem))
 	{
 		if (AddItem(PackagedItem->GetItemData()))
 		{

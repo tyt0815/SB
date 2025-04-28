@@ -144,7 +144,6 @@ AActor* AConveyorBelt::TraceReceiver()
 		AActor* Candidate = HitResult.GetActor();
 		if (Candidate && Candidate->Implements<UPackageReceiver>())
 		{
-			SCREEN_LOG_SINGLE_FRAME(Candidate->GetName());
 			return Candidate;
 		}
 	}
@@ -184,7 +183,6 @@ AActor* AConveyorBelt::TraceSupplier()
 		AActor* Candidate = HitResult.GetActor();
 		if (Candidate && Candidate->Implements<UPackageSupplier>())
 		{
-			SCREEN_LOG_SINGLE_FRAME(Candidate->GetName());
 			return Candidate;
 		}
 	}

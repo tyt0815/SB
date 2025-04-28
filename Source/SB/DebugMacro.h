@@ -1,4 +1,5 @@
 #pragma once
+#include "Kismet/KismetStringLibrary.h"
 
 // String Log
 #define SCREEN_DEBUG_MESSAGE(Key, TimeToDisplay, Color, DebugMessage)\

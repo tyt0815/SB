@@ -1,5 +1,6 @@
 #include "BuildSystem/InputPort.h"
 #include "Components/InventoryComponent.h"
+#include "SB/DebugMacro.h"
 
 AInputPort::AInputPort()
 {
