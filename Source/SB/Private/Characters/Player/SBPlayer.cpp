@@ -771,18 +771,22 @@ void ASBPlayer::TraceInteractionActors()
 	
 	FVector Start = GetActorLocation();
 	FVector End = Start + GetActorForwardVector() * InteractionRange;
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic));
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel2)); // BuildBlocker
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 	FHitResult HitResult;
 	while (true)
 	{
-		UKismetSystemLibrary::BoxTraceSingle(
+		UKismetSystemLibrary::BoxTraceSingleForObjects(
 			this,
 			Start,
 			End,
 			FVector(0.0f, GetCapsuleComponent()->GetScaledCapsuleRadius() * 2, GetCapsuleComponent()->GetScaledCapsuleHalfHeight()),
 			GetActorForwardVector().Rotation(),
-			UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility),
+			ObjectTypes,
 			false,
 			ActorsToIgnore,
 			EDrawDebugTrace::None,

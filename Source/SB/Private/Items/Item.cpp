@@ -49,6 +49,10 @@ FItemData AItem::MakeItemData()
 
 void AItem::InitMeshsVisibilityAndPhysics()
 {
+	if (!bSimulatePhysics)
+	{
+		return;
+	}
 	if (StaticMesh && StaticMesh->GetStaticMesh())
 	{
 		ActivateStaticMesh(true);

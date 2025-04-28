@@ -372,6 +372,32 @@ void ABuilding::BeginDestroy()
 	Super::BeginDestroy();
 }
 
+void ABuilding::TraceBuilding(FVector Start, FVector End, FHitResult& HitResult)
+{
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel2));
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	FVector BoxExtent = BuildBlocker->GetScaledBoxExtent();
+	BoxExtent.X = 0.0f;
+	FRotator Orient = (End - Start).Rotation();
+
+	UKismetSystemLibrary::BoxTraceSingleForObjects(
+		this,
+		Start,
+		End,
+		BoxExtent,
+		Orient,
+		ObjectTypes,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		HitResult,
+		true
+	);
+}
+
 void ABuilding::SetOutlineDraw(bool bDraw, int Color)
 {
 	SetRenderCustomDepthStencil(bDraw, Color);

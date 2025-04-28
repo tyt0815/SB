@@ -49,6 +49,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Item)
 	bool bStackable = true;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Item | Building")
+	bool bSimulatePhysics = true;
+
 private:
 	void ActivateStaticMesh(bool bActive);
 	void ActivateSkeletalMesh(bool bActive);
