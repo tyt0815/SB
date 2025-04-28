@@ -147,8 +147,6 @@ void ASBPlayer::BeginPlay()
 				Inventory->SetInventoryWidget(OverlayWidget->GetPlayerInventoryWidget());
 			}
 		}
-
-		
 	}
 }
 

@@ -1,5 +1,5 @@
 #include "Components/InventoryComponent.h"
-#include "Items/Item.h"
+#include "Items/PackagedItem.h"
 #include "HUDs/SBPlayerInventoryWidget.h"
 #include "HUDs/ItemSlotWidget.h"
 #include "SB/DebugMacro.h"
@@ -89,9 +89,26 @@ bool UInventoryComponent::AddItem(AItem* Item)
 {
 	if (Item)
 	{
-		return AddItem(Item->MakeItemData());
+		if (AddItem(Item->MakeItemData()))
+		{
+			Item->Destroy();
+			return true;
+		}
 	}
 	
+	return false;
+}
+
+bool UInventoryComponent::AddItem(APackagedItem* PackagedItem)
+{
+	if (PackagedItem)
+	{
+		if (AddItem(PackagedItem->GetItemData()))
+		{
+			PackagedItem->Destroy();
+			return true;
+		}
+	}
 	return false;
 }
 
@@ -111,10 +128,11 @@ FItemData UInventoryComponent::RemoveItem(int Index, int Quantity)
 	return Item;
 }
 
-void UInventoryComponent::DropItem(int Index, int Amount)
+TArray<AItem*> UInventoryComponent::DropItem(int Index, int Amount)
 {
 	FItemData Item = RemoveItem(Index, Amount);
 	UWorld* World = GetWorld();
+	TArray<AItem*> DroppedItem;
 	if (World && Item.ItemClass)
 	{
 		AActor* Owner = GetOwner();
@@ -127,9 +145,10 @@ void UInventoryComponent::DropItem(int Index, int Amount)
 		{
 			FTransform SpawnTransform;
 			SpawnTransform.SetLocation(SpawnLocation);
-			World->SpawnActor<AItem>(Item.ItemClass, SpawnTransform);
+			DroppedItem.Add(World->SpawnActor<AItem>(Item.ItemClass, SpawnTransform));
 		}
 	}
+	return DroppedItem;
 }
 
 void UInventoryComponent::LogItems()

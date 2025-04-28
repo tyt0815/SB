@@ -6,9 +6,6 @@
 #include "Items/Item.h"
 #include "PackagedItem.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class SB_API APackagedItem : public AItem
 {
@@ -26,4 +23,10 @@ protected:
 	
 protected:
 	FItemData ItemData;
+
+public:
+	FORCEINLINE FItemData GetItemData() const
+	{
+		return ItemData;
+	}
 };

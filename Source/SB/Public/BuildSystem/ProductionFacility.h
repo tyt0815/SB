@@ -36,13 +36,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	void AddProductionInput(FItemData ItemData);
 	void StartProduction();
-	FItemData CollectOutput();
 
 
 protected:
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
 	UInventoryComponent* ProductionInputs;
 
@@ -53,10 +50,16 @@ private:
 	void TryAddToProductionOutput();
 
 	UPROPERTY(EditAnywhere, Category = "Item | Building | ProductionFacility")
-	int32 InputPortNum = 3;
+	TSubclassOf<class AInputPort> InputPortClass;
 
 	UPROPERTY(EditAnywhere, Category = "Item | Building | ProductionFacility")
-	int32 OutputPortNum = 3;
+	TSubclassOf<class AOutputPort> OutputPortClass;
+
+	UPROPERTY(EditAnywhere, Category = "Item | Building | ProductionFacility")
+	TArray<FIntVector> InputPortGridCoord;
+
+	UPROPERTY(EditAnywhere, Category = "Item | Building | ProductionFacility")
+	TArray<FIntVector> OutputPortGridCoord;
 
 	UPROPERTY(EditAnywhere, Category = "Item | Building | ProductionFacility")
 	TArray<FProductionRecipe> Recipes;
@@ -64,4 +67,7 @@ private:
 	FItemData OutputData;
 	float ProductionTimeLeft = 0;
 	bool bProducted = false;
+
+	TArray<class AInputPort*> InputPorts;
+	TArray<class AOutputPort*> OutputPorts;
 };

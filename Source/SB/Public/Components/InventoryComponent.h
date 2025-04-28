@@ -6,6 +6,7 @@
 #include "InventoryComponent.generated.h"
 
 class AItem;
+class APackagedItem;
 class USBPlayerInventoryWidget;
 
 
@@ -27,8 +28,9 @@ public:
 	void UpdateItemWidget(int i);
 	bool AddItem(const FItemData& Item);
 	bool AddItem(AItem* Item);
+	bool AddItem(APackagedItem* PackagedItem);
 	FItemData RemoveItem(int Index, int Quantity);
-	void DropItem(int Index, int Quantity);
+	TArray<AItem*> DropItem(int Index, int Quantity);
 	void LogItems();
 
 protected:
@@ -56,5 +58,9 @@ public:
 	FORCEINLINE void SetInventoryWidget(USBPlayerInventoryWidget* Widget)
 	{
 		InventoryWidget = Widget;
+	}
+	FORCEINLINE bool IsValidIndex(int32 Index) const
+	{
+		return Inventory.IsValidIndex(Index);
 	}
 };

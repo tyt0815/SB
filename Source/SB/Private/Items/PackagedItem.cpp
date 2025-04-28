@@ -2,6 +2,7 @@
 
 
 #include "Items/PackagedItem.h"
+#include "SB/DebugMacro.h"
 
 void APackagedItem::SetItemData(FItemData Item)
 {

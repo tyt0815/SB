@@ -1,5 +1,8 @@
 #include "BuildSystem/ProductionFacility.h"
 #include "Components/InventoryComponent.h"
+#include "BuildSystem/InputPort.h"
+#include "BuildSystem/OutputPort.h"
+#include "BuildSystem/BuildSystem.h"
 #include "SB/DebugMacro.h"
 
 AProductionFacility::AProductionFacility()
@@ -15,11 +18,6 @@ AProductionFacility::AProductionFacility()
 void AProductionFacility::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-
-	InputPortNum = FMath::Clamp(InputPortNum, 1, CellExtent.X);
-	OutputPortNum = FMath::Clamp(OutputPortNum, 1, CellExtent.X);
-	ProductionInputs->SetInventorySize(FMath::Clamp(ProductionInputs->GetInventorySize(), 1, InputPortNum));
-	ProductionOutputs->SetInventorySize(1);
 }
 
 void AProductionFacility::Tick(float Delta)
@@ -40,6 +38,10 @@ void AProductionFacility::Tick(float Delta)
 				ProductionTimeLeft -= Delta;
 			}
 		}
+		else
+		{
+			StartProduction();
+		}
 	}
 }
 
@@ -59,14 +61,42 @@ void AProductionFacility::BeginPlay()
 			ProductionInputs->AddItem(ItemData);
 		}
 	}
-	StartProduction();
-}
 
-void AProductionFacility::AddProductionInput(FItemData ItemData)
-{
-	ProductionInputs->AddItem(ItemData);
+	ProductionInputs->SetInventorySize(FMath::Clamp(ProductionInputs->GetInventorySize(), 1, InputPortGridCoord.Num()));
+	ProductionOutputs->SetInventorySize(1);
 
-	StartProduction();
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		if (InputPortClass)
+		{
+			for (const FIntVector GridCoord : InputPortGridCoord)
+			{
+				AInputPort* Inputport = World->SpawnActor<AInputPort>(InputPortClass);
+				if (Inputport)
+				{
+					InputPorts.Add(Inputport);
+					Inputport->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+					SCREEN_LOG(1, Inputport->GetActorLocation().ToString());
+					Inputport->SetActorRelativeLocation(BuildSystem::GetRelativeLocation(GridCoord));
+					SCREEN_LOG(2, Inputport->GetActorLocation().ToString());
+				}
+			}
+		}
+		if (OutputPortClass)
+		{
+			for (const FIntVector GridCoord : OutputPortGridCoord)
+			{
+				AOutputPort* OutputPort = World->SpawnActor<AOutputPort>(OutputPortClass);
+				if (OutputPort)
+				{
+					OutputPorts.Add(OutputPort);
+					OutputPort->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+					OutputPort->SetActorRelativeLocation(BuildSystem::GetRelativeLocation(GridCoord));
+				}
+			}
+		}
+	}
 }
 
 void AProductionFacility::StartProduction()
