@@ -1,6 +1,8 @@
 #include "BuildSystem/OutputPort.h"
 #include "Items/PackagedItem.h"
 #include "Components/InventoryComponent.h"
+#include "Components/InteractionComponent.h"
+#include "Characters/Player/SBPlayer.h"
 #include "GameInstances/SBGameInstance.h"
 
 void AOutputPort::TryReceivePackage()
@@ -24,5 +26,14 @@ void AOutputPort::TryReceivePackage()
 }
 
 void AOutputPort::AddInteractions()
+{
+	if (bInteractive)
+	{
+		int Index = InteractionComponent->AddInteraction("Info");
+		InteractionComponent->AddInteractionAt(Index, this, &AOutputPort::ShowInfo);
+	}
+}
+
+void AOutputPort::ShowInfo(AActor* Actor)
 {
 }

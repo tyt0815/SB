@@ -25,3 +25,9 @@ void ASBPlayerController::SetMouseInterface(bool bUse)
 	bEnableClickEvents = bUse;
 	bEnableMouseOverEvents = bUse;
 }
+
+void ASBPlayerController::SwitchToUIMode(bool bUI)
+{
+	SetMouseInterface(bUI);
+	bUseUI = bUI;
+}

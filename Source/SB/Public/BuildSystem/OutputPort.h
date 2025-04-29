@@ -14,7 +14,15 @@ public:
 
 protected:
 	virtual void AddInteractions() override;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Item | Building | ConveyorBelt | FacilityPort | OutputPort")
+	bool bInteractive = false;
+
 	int32 LinkedItemDataIndex;
+
+private:
+	UFUNCTION()
+	void ShowInfo(AActor* Actor);
 
 public:
 	FORCEINLINE void SetLinkedItemDataIndex(int32 Index)

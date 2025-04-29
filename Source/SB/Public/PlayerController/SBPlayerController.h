@@ -23,10 +23,18 @@ public:
 	void AddInputMappingContext(UInputMappingContext* InputMappingContext);
 	void RemoveInputMappingContext(UInputMappingContext* InputMappingContext);
 	void SetMouseInterface(bool bUse);
+	void SwitchToUIMode(bool bUI);
 
 protected:
 
 private:
 	UEnhancedInputLocalPlayerSubsystem* EnhancedInputLocalPlayerSubsystem;
 	AActor* SelectedActor = nullptr;
+	bool bUseUI = false;
+
+public:
+	FORCEINLINE bool IsUIMode() const
+	{
+		return bUseUI;
+	}
 };

@@ -6,38 +6,27 @@
 
 class UInventoryComponent;
 class UInteractionComponent;
+class USBWindowWidget;
 
 UCLASS()
 class SB_API USBPlayerOverlayWidget : public UUserWidget
 {
 	GENERATED_BODY()
+public:
+	virtual void NativeConstruct() override;
 
 public:
-	void SetPlayerInventoryVisibility(ESlateVisibility SlateVisibility);
-	void SetPlayerInventoryEnabled(bool bEnable);
 	void OpenInventoryWidget(UInventoryComponent* InventoryComponent);
-	void CloseInventoryWidget();
-	void UpdateInventory(UInventoryComponent* InventoryComponent);
 	void ShowInteractionList(UInteractionComponent* InteractionComponent);
 	void HideInteractionList();
 	void FocusInteractionDescriptionAt(int32 i);
 	
 private:
 	UPROPERTY(meta = (BindWidget))
-	class USBPlayerInventoryWidget* PlayerInventory;
-
-	UPROPERTY(meta = (BindWidget))
 	class UInteractionListWidget* InteractionList;
 
-	bool bInventoryOpened = false;
+	UPROPERTY(meta = (BindWidget))
+	USBWindowWidget* WindowWidget;
 
 public:
-	FORCEINLINE bool IsInventoryOpened() const
-	{
-		return bInventoryOpened;
-	}
-	FORCEINLINE USBPlayerInventoryWidget* GetPlayerInventoryWidget() const
-	{
-		return PlayerInventory;
-	}
 };

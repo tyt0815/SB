@@ -134,18 +134,12 @@ void ASBPlayer::BeginPlay()
 	SpawnBuildingCreater();
 
 	// UI
-	ASBPlayerController* PlayerController = Cast<ASBPlayerController>(GetController());
 	if (PlayerController)
 	{
 		HUD = Cast<ASBHUD>(PlayerController->GetHUD());
 		if (HUD)
 		{
 			OverlayWidget = HUD->GetPlayerOverlay();
-			if (OverlayWidget)
-			{
-				OverlayWidget->CloseInventoryWidget();
-				Inventory->SetInventoryWidget(OverlayWidget->GetPlayerInventoryWidget());
-			}
 		}
 	}
 }
@@ -225,6 +219,11 @@ bool ASBPlayer::PickUpItem(AItem* Item)
 	return Inventory->AddItem(Item);
 }
 
+TArray<TSubclassOf<ABuilding>> ASBPlayer::GetBuildingList()
+{
+	return BuildingClasses;
+}
+
 bool ASBPlayer::IsFireReady() const
 {
 	return !IsUnarmed() &&
@@ -234,9 +233,9 @@ bool ASBPlayer::IsFireReady() const
 		;
 }
 
-TArray<TSubclassOf<ABuilding>> ASBPlayer::GetBuildingList()
+bool ASBPlayer::IsUIMode() const
 {
-	return BuildingClasses;
+	return PlayerController->IsUIMode();
 }
 
 void ASBPlayer::OnPlayerPossessStarted_Implementation()
@@ -327,7 +326,7 @@ void ASBPlayer::Move(const FInputActionValue& Value)
 
 void ASBPlayer::Look(const FInputActionValue& Value)
 {
-	if (!bUseUI)
+	if (!IsUIMode())
 	{
 		// input is a Vector2D
 		FVector2D LookAxisVector = Value.Get<FVector2D>();
@@ -419,16 +418,8 @@ void ASBPlayer::IStarted()
 {
 	if (OverlayWidget)
 	{
-		if (!bUseUI)
-		{
-			ConvertToUIUseMode(true);
-			OverlayWidget->OpenInventoryWidget(Inventory);
-		}
-		else
-		{
-			ConvertToUIUseMode(false);
-			OverlayWidget->CloseInventoryWidget();
-		}
+		PlayerController->SwitchToUIMode(true);
+		OverlayWidget->OpenInventoryWidget(Inventory);
 	}
 }
 
@@ -644,7 +635,7 @@ bool ASBPlayer::IsPlayingReloadMontage(AWeapon* Weapon) const
 
 void ASBPlayer::InitializePlayerController()
 {
-	ASBPlayerController* PlayerController = Cast<ASBPlayerController>(GetController());
+	PlayerController = Cast<ASBPlayerController>(GetController());
 	if (PlayerController)
 	{
 		PlayerController->SetMouseInterface(false);
@@ -652,11 +643,15 @@ void ASBPlayer::InitializePlayerController()
 		PlayerController->PlayerCameraManager->ViewPitchMin = -70.0f;
 		PlayerController->AddInputMappingContext(DefaultMappingContext);
 	}
+	else
+	{
+		SCREEN_LOG(0, TEXT("PlayerController is NULL"));
+		Destroy();
+	}
 }
 
 void ASBPlayer::TransferPlayerControllerPossessionToPawn(APawn* Pawn)
 {
-	ASBPlayerController* PlayerController = Cast<ASBPlayerController>(Controller);
 	if (PlayerController)
 	{
 		PlayerController->RemoveInputMappingContext(DefaultMappingContext);
@@ -753,19 +748,13 @@ void ASBPlayer::SetBuildingCreaterLocation()
 	}
 }
 
-void ASBPlayer::ConvertToUIUseMode(bool bUse)
-{
-	bUseUI = bUse;
-	ASBPlayerController* PlayerController = Cast<ASBPlayerController>(GetController());
-	if (PlayerController)
-	{
-		PlayerController->SetMouseInterface(bUse);
-	}
-}
-
 void ASBPlayer::TraceInteractionActors()
 {
 	InteractiveActorList.Empty();
+	if (IsUIMode())
+	{
+		return;
+	}
 	
 	FVector Start = GetActorLocation();
 	FVector End = Start + GetActorForwardVector() * InteractionRange;

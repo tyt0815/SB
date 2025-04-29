@@ -1,46 +1,19 @@
 #include "HUDs/SBPlayerOverlayWidget.h"
 #include "HUDs/SBPlayerInventoryWidget.h"
+#include "HUDs/SBWindowWidget.h"
 #include "HUDs/InteractionListWidget.h"
 #include "Components/InventoryComponent.h"
 #include "SB/DebugMacro.h"
 
-void USBPlayerOverlayWidget::SetPlayerInventoryVisibility(ESlateVisibility SlateVisibility)
+void USBPlayerOverlayWidget::NativeConstruct()
 {
-	if (PlayerInventory)
-	{
-		PlayerInventory->SetVisibility(SlateVisibility);
-	}
-}
-
-void USBPlayerOverlayWidget::SetPlayerInventoryEnabled(bool bEnable)
-{
-	if (PlayerInventory)
-	{
-		PlayerInventory->SetIsEnabled(bEnable);
-	}
+	Super::NativeConstruct();
+	WindowWidget->Close();
 }
 
 void USBPlayerOverlayWidget::OpenInventoryWidget(UInventoryComponent* InventoryComponent)
 {
-	bInventoryOpened = true;
-	SetPlayerInventoryVisibility(ESlateVisibility::Visible);
-	SetPlayerInventoryEnabled(true);
-	UpdateInventory(InventoryComponent);
-}
-
-void USBPlayerOverlayWidget::CloseInventoryWidget()
-{
-	bInventoryOpened = false;
-	SetPlayerInventoryEnabled(false);
-	SetPlayerInventoryVisibility(ESlateVisibility::Hidden);
-}
-
-void USBPlayerOverlayWidget::UpdateInventory(UInventoryComponent* InventoryComponent)
-{
-	if (PlayerInventory && InventoryComponent)
-	{
-		PlayerInventory->UpdateInventory(InventoryComponent);
-	}
+	WindowWidget->OpenPlayerInventory(InventoryComponent);
 }
 
 void USBPlayerOverlayWidget::ShowInteractionList(UInteractionComponent* InteractionComponent)

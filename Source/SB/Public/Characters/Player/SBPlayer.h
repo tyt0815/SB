@@ -57,8 +57,9 @@ public:
 	void PlayReloadMontage(AWeapon* Weapon);
 	void PlayEquipMontage(AWeapon* Weapon);
 	bool PickUpItem(AItem* Item);
-	bool IsFireReady() const;
 	TArray<TSubclassOf<ABuilding>> GetBuildingList();
+	bool IsFireReady() const;
+	bool IsUIMode() const;
 
 	UFUNCTION(BlueprintNativeEvent, Category = SBPlayer)
 	void OnPlayerPossessStarted();
@@ -157,7 +158,6 @@ private:
 	void SpawnBuildingCreater();
 	void SpawnAndStockWeapon(uint32 i);
 	void SetBuildingCreaterLocation();
-	void ConvertToUIUseMode(bool bUse);
 	void TraceInteractionActors();
 	void SelectInteractionActor();
 	float ForwardVectorDot(FVector B);
@@ -218,13 +218,13 @@ private:
 	ABuildingCreater* BuildingCreater;
 	class ASBHUD* HUD;
 	class USBPlayerOverlayWidget* OverlayWidget;
+	class ASBPlayerController* PlayerController;
 	FName RightHandSocketName = "hand_r_Socket";
 	float JogScale = 1.0f;
 	float WalkScale = 0.4f;
 	float MovementSpeedScale;
 	uint16 CurrentWeaponIndex = 0;
 	bool bUnArmed = true;
-	bool bUseUI = false;
 	EUpperBodyState UpperBodyState = EUpperBodyState::EUBS_Idle;
 	ECharacterControllMode ControllMode = ECharacterControllMode::ECCM_Combat;
 

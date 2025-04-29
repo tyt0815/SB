@@ -9,6 +9,7 @@ void USBPlayerInventoryWidget::UpdateInventory(UInventoryComponent* InventoryCom
 	UWorld* World = GetWorld();
 	if (World && InventoryComponent && ItemSlotClass)
 	{
+		InventoryComponent->SetInventoryWidget(this);
 		APlayerController* Controller = World->GetFirstPlayerController();
 		if (Controller)
 		{
