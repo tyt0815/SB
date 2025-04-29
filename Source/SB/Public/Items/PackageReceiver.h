@@ -26,4 +26,7 @@ class SB_API IPackageReceiver
 public:
 	UFUNCTION(BlueprintNativeEvent, Category = "PackageReceiver")
 	bool ReceivePackage(APackagedItem* Package);
+
+	UFUNCTION(BlueprintNativeEvent, Category = "PackageReceiver")
+	bool IsConnectedToSupplier();
 };

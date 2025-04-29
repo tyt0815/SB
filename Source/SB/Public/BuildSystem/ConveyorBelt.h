@@ -4,8 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "BuildSystem/Building.h"
-#include "Items/PackageReceiver.h"
-#include "Items/PackageSupplier.h"
 #include "ConveyorBelt.generated.h"
 
 class USplineComponent;
@@ -19,7 +17,7 @@ enum class EConveyorBeltState : uint8
 };
  
 UCLASS()
-class SB_API AConveyorBelt : public ABuilding, public IPackageReceiver, public IPackageSupplier
+class SB_API AConveyorBelt : public ABuilding
 {
 	GENERATED_BODY()
 
@@ -27,16 +25,14 @@ public:
 	AConveyorBelt();
 	virtual void Tick(float Delta) override;
 
-	void TrySupplyPackage();
-
-	void TryReceivePackage();
-
 protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual bool ReceivePackage_Implementation(APackagedItem* Package) override;
-	virtual APackagedItem* SupplyPackage_Implementation() override;
+	virtual void TrySupplyPackage();
+	virtual void TryReceivePackage();
+	virtual bool ReceivePackage(APackagedItem* Package);
+	virtual APackagedItem* SupplyPackage();
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
@@ -51,11 +47,9 @@ protected:
 	float ElapsedMoveTime = 0.0f;
 
 private:
-	AConveyorBelt* TraceNextConveyorBelt();
-	AConveyorBelt* TracePrevConveyorBelt();
-	AActor* TraceReceiver();
-	AActor* TraceSupplier();
+	void TraceReceiver();
+	void TraceSupplier();
 
-	AConveyorBelt* NextConveyorBelt;
-	AConveyorBelt* PrevConveyorBelt;
+	AConveyorBelt* Receiver;
+	AConveyorBelt* Supplier;
 };

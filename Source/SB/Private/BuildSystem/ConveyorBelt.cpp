@@ -4,6 +4,8 @@
 #include "BuildSystem/ConveyorBelt.h"
 #include "Components/BoxComponent.h"
 #include "Components/SplineComponent.h"
+#include "Components/SplineMeshComponent.h"
+#include "Components/ChildActorComponent.h"
 #include "Items/PackagedItem.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "SB/DebugMacro.h"
@@ -12,13 +14,15 @@ AConveyorBelt::AConveyorBelt()
 {
 	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("Spline"));
 	SplineComponent->SetupAttachment(GetRootComponent());
-	SplineComponent->SetRelativeLocation(FVector(-50, 0, 0));
+	SplineComponent->SetRelativeLocation(FVector(-50, 0, -24.99));
 }
 
 void AConveyorBelt::Tick(float Delta)
 {
 	Super::Tick(Delta);
 
+	TraceReceiver();
+	TraceSupplier();
 	if (CarriedPackage)
 	{
 		ElapsedMoveTime += Delta;
@@ -43,12 +47,11 @@ void AConveyorBelt::Tick(float Delta)
 
 void AConveyorBelt::TrySupplyPackage()
 {
-	AActor* Receiver = TraceReceiver();
-	if (Receiver)
+	if (IsValid(Receiver))
 	{
-		if (IPackageReceiver::Execute_ReceivePackage(Receiver, CarriedPackage))
+		if (Receiver->ReceivePackage(CarriedPackage))
 		{
-			IPackageSupplier::Execute_SupplyPackage(this);
+			SupplyPackage();
 			TryReceivePackage();
 		}
 	}
@@ -56,10 +59,9 @@ void AConveyorBelt::TrySupplyPackage()
 
 void AConveyorBelt::TryReceivePackage()
 {
-	AActor* Supplier = TraceSupplier();
-	if (Supplier)
+	if (IsValid(Supplier))
 	{
-		IPackageReceiver::Execute_ReceivePackage(this, IPackageSupplier::Execute_SupplyPackage(Supplier));
+		ReceivePackage(Supplier->SupplyPackage());
 	}
 }
 
@@ -68,7 +70,7 @@ void AConveyorBelt::BeginPlay()
 	Super::BeginPlay();
 }
 
-bool AConveyorBelt::ReceivePackage_Implementation(APackagedItem* Package)
+bool AConveyorBelt::ReceivePackage(APackagedItem* Package)
 {
 	if (Package && CarriedPackage == nullptr && Package != CarriedPackage)
 	{
@@ -79,7 +81,7 @@ bool AConveyorBelt::ReceivePackage_Implementation(APackagedItem* Package)
 	return false;
 }
 
-APackagedItem* AConveyorBelt::SupplyPackage_Implementation()
+APackagedItem* AConveyorBelt::SupplyPackage()
 {
 	if (ElapsedMoveTime >= MoveDuration)
 	{
@@ -91,28 +93,7 @@ APackagedItem* AConveyorBelt::SupplyPackage_Implementation()
 	return nullptr;
 }
 
-AConveyorBelt* AConveyorBelt::TraceNextConveyorBelt()
-{
-	float SplineLength = SplineComponent->GetSplineLength();
-	FVector Start = SplineComponent->GetLocationAtDistanceAlongSpline(SplineLength, ESplineCoordinateSpace::World);
-	FRotator Rotator = SplineComponent->GetRotationAtDistanceAlongSpline(SplineLength, ESplineCoordinateSpace::World);
-	FVector End = Start + Rotator.Vector();
-	FHitResult HitResult;
-	TraceBuilding(Start, End, HitResult);
-	return Cast<AConveyorBelt>(HitResult.GetActor());
-}
-
-AConveyorBelt* AConveyorBelt::TracePrevConveyorBelt()
-{
-	FVector Start = SplineComponent->GetLocationAtDistanceAlongSpline(0, ESplineCoordinateSpace::World);
-	FRotator Rotator = SplineComponent->GetRotationAtDistanceAlongSpline(0, ESplineCoordinateSpace::World);
-	FVector End = Start - Rotator.Vector();
-	FHitResult HitResult;
-	TraceBuilding(Start, End, HitResult);
-	return Cast<AConveyorBelt>(HitResult.GetActor());
-}
-
-AActor* AConveyorBelt::TraceReceiver()
+void AConveyorBelt::TraceReceiver()
 {
 	float SplineLength = SplineComponent->GetSplineLength();
 	FVector Start = SplineComponent->GetLocationAtDistanceAlongSpline(SplineLength, ESplineCoordinateSpace::World);
@@ -120,72 +101,36 @@ AActor* AConveyorBelt::TraceReceiver()
 	FVector End = Start + Rotator.Vector();
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
-	FVector BoxExtent = BuildBlocker->GetScaledBoxExtent();
-	BoxExtent.X = 0.0f;
 
 	TArray<FHitResult> HitResults;
-	UKismetSystemLibrary::BoxTraceMulti(
-		this,
-		Start,
-		End,
-		BoxExtent,
-		Rotator,
-		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility),
-		false,
-		ActorsToIgnore,
-		EDrawDebugTrace::None,
-		HitResults,
-		true
-	);
+	TraceBuildings(Start, End, HitResults);
 
-	TArray<AActor*> Actors;
 	for (const auto& HitResult : HitResults)
 	{
-		AActor* Candidate = HitResult.GetActor();
-		if (Candidate && Candidate->Implements<UPackageReceiver>())
+		Receiver = Cast<AConveyorBelt>(HitResult.GetActor());
+		if (Receiver)
 		{
-			return Candidate;
+			return;
 		}
 	}
-	
-	return nullptr;
 }
 
-AActor* AConveyorBelt::TraceSupplier()
+void AConveyorBelt::TraceSupplier()
 {
 	FVector Start = SplineComponent->GetLocationAtDistanceAlongSpline(0, ESplineCoordinateSpace::World);
 	FRotator Rotator = SplineComponent->GetRotationAtDistanceAlongSpline(0, ESplineCoordinateSpace::World);
 	FVector End = Start - Rotator.Vector();
-	
-	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
-	FVector BoxExtent = BuildBlocker->GetScaledBoxExtent();
-	BoxExtent.X = 0.0f;
-
 	TArray<FHitResult> HitResults;
-	UKismetSystemLibrary::BoxTraceMulti(
-		this,
-		Start,
-		End,
-		BoxExtent,
-		Rotator,
-		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility),
-		false,
-		ActorsToIgnore,
-		EDrawDebugTrace::None,
-		HitResults,
-		true
-	);
+
+	TraceBuildings(Start, End, HitResults);
 
 	TArray<AActor*> Actors;
 	for (const auto& HitResult : HitResults)
 	{
-		AActor* Candidate = HitResult.GetActor();
-		if (Candidate && Candidate->Implements<UPackageSupplier>())
+		Supplier = Cast<AConveyorBelt>(HitResult.GetActor());
+		if (Supplier)
 		{
-			return Candidate;
+			return;
 		}
 	}
-
-	return nullptr;
 }

@@ -27,6 +27,8 @@ public:
 protected:
 	virtual void InitMeshsVisibilityAndPhysics();
 	virtual void AddInteractions();
+	void ActivateStaticMesh(bool bActive);
+	void ActivateSkeletalMesh(bool bActive);
 
 	UFUNCTION()
 	void AddToInventory(AActor* OtherActor);
@@ -53,8 +55,6 @@ protected:
 	bool bSimulatePhysics = true;
 
 private:
-	void ActivateStaticMesh(bool bActive);
-	void ActivateSkeletalMesh(bool bActive);
 
 public:
 	FORCEINLINE FName GetItemName() const

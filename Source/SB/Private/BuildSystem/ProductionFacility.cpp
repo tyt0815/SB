@@ -18,6 +18,104 @@ AProductionFacility::AProductionFacility()
 void AProductionFacility::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
+
+	ProductionInputs->SetInventorySize(FMath::Clamp(ProductionInputs->GetInventorySize(), 1, InputPortGridCoord.Num()));
+	ProductionOutputs->SetInventorySize(1);
+
+	InitializePorts();
+}
+
+void AProductionFacility::InitializePorts()
+{
+	// DestroyAllPorts();
+
+	// 부족한 컴포넌트 생성하기
+	for (int i = InputPortComponents.Num(); i < InputPortGridCoord.Num(); ++i)
+	{
+		UChildActorComponent* NewComponent = NewObject<UChildActorComponent>(this);
+		if (NewComponent)
+		{
+			InputPortComponents.Add(NewComponent);
+			NewComponent->RegisterComponent();
+		}
+	}
+	for (int i = OutputPortComponents.Num(); i < OutputPortGridCoord.Num(); ++i)
+	{
+		UChildActorComponent* NewComponent = NewObject<UChildActorComponent>(this);
+		if (NewComponent)
+		{
+			OutputPortComponents.Add(NewComponent);
+			NewComponent->RegisterComponent();
+		}
+	}
+
+	// 초과한 컴포넌트 파괴하기
+	for (int i = InputPortComponents.Num(); i > InputPortGridCoord.Num(); --i)
+	{
+		InputPortComponents[i]->DestroyComponent();
+	}
+	InputPortComponents.SetNum(InputPortGridCoord.Num());
+	for (int i = OutputPortComponents.Num(); i > OutputPortGridCoord.Num(); --i)
+	{
+		OutputPortComponents[i]->DestroyComponent();
+	}
+	OutputPortComponents.SetNum(OutputPortGridCoord.Num());
+
+	// 컴포넌트 설정
+	for (int i = 0; i < InputPortComponents.Num(); ++i)
+	{
+		UChildActorComponent* InputPortComponent = InputPortComponents[i];
+		if (InputPortComponent)
+		{
+			InputPortComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+			InputPortComponent->SetRelativeLocation(BuildSystem::GetRelativeLocation(InputPortGridCoord[i]));
+			if (InputPortClass != InputPortComponent->GetChildActorClass())
+			{
+				InputPortComponent->DestroyChildActor();
+				InputPortComponent->SetChildActorClass(InputPortClass);
+			}
+
+			AInputPort* InputPort = Cast<AInputPort>(InputPortComponent->GetChildActor());
+			if (InputPort)
+			{
+				InputPort->SetConnectedInventory(ProductionInputs);
+			}
+		}
+	}
+	for (int i = 0; i < OutputPortComponents.Num(); ++i)
+	{
+		UChildActorComponent* OutputPortComponent = OutputPortComponents[i];
+		if (OutputPortComponent)
+		{
+			OutputPortComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+			OutputPortComponent->SetRelativeLocation(BuildSystem::GetRelativeLocation(OutputPortGridCoord[i]));
+			if (OutputPortClass != OutputPortComponent->GetChildActorClass())
+			{
+				OutputPortComponent->DestroyChildActor();
+				OutputPortComponent->SetChildActorClass(OutputPortClass);
+			}
+			AOutputPort* OutputPort = Cast<AOutputPort>(OutputPortComponent->GetChildActor());
+			if (OutputPort)
+			{
+				OutputPort->SetConnectedInventory(ProductionInputs);
+			}
+		}
+	}
+}
+
+void AProductionFacility::DestroyAllPorts()
+{
+	for (UChildActorComponent* Inputport : InputPortComponents)
+	{
+		Inputport->DestroyComponent();
+	}
+	InputPortComponents.Empty();
+
+	for (UChildActorComponent* Outputport : InputPortComponents)
+	{
+		Outputport->DestroyComponent();
+	}
+	InputPortComponents.Empty();
 }
 
 void AProductionFacility::Tick(float Delta)
@@ -61,42 +159,11 @@ void AProductionFacility::BeginPlay()
 			ProductionInputs->AddItem(ItemData);
 		}
 	}
+}
 
-	ProductionInputs->SetInventorySize(FMath::Clamp(ProductionInputs->GetInventorySize(), 1, InputPortGridCoord.Num()));
-	ProductionOutputs->SetInventorySize(1);
-
-	UWorld* World = GetWorld();
-	if (World)
-	{
-		if (InputPortClass)
-		{
-			for (const FIntVector GridCoord : InputPortGridCoord)
-			{
-				AInputPort* Inputport = World->SpawnActor<AInputPort>(InputPortClass);
-				if (Inputport)
-				{
-					InputPorts.Add(Inputport);
-					Inputport->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-					Inputport->SetActorRelativeLocation(BuildSystem::GetRelativeLocation(GridCoord));
-					Inputport->SetConnectedInventory(ProductionInputs);
-				}
-			}
-		}
-		if (OutputPortClass)
-		{
-			for (const FIntVector GridCoord : OutputPortGridCoord)
-			{
-				AOutputPort* OutputPort = World->SpawnActor<AOutputPort>(OutputPortClass);
-				if (OutputPort)
-				{
-					OutputPorts.Add(OutputPort);
-					OutputPort->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-					OutputPort->SetActorRelativeLocation(BuildSystem::GetRelativeLocation(GridCoord));
-					OutputPort->SetConnectedInventory(ProductionOutputs);
-				}
-			}
-		}
-	}
+void AProductionFacility::BeginDestroy()
+{
+	Super::BeginDestroy();
 }
 
 void AProductionFacility::StartProduction()

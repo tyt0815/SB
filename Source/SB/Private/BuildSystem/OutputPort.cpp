@@ -3,24 +3,8 @@
 #include "Components/InventoryComponent.h"
 #include "GameInstances/SBGameInstance.h"
 
-AOutputPort::AOutputPort()
+void AOutputPort::TryReceivePackage()
 {
-	PrimaryActorTick.bCanEverTick = true;
-}
-
-void AOutputPort::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
-void AOutputPort::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-APackagedItem* AOutputPort::SupplyPackage_Implementation()
-{
-	APackagedItem* PackagedItem = nullptr;
 	UWorld* World = GetWorld();
 	if (ConnectedInventory && Token == 0 && World && ConnectedInventory->IsValidIndex(LinkedItemDataIndex))
 	{
@@ -30,13 +14,11 @@ APackagedItem* AOutputPort::SupplyPackage_Implementation()
 			USBGameInstance* GameInstance = Cast<USBGameInstance>(World->GetGameInstance());
 			if (GameInstance)
 			{
-				PackagedItem = World->SpawnActor<APackagedItem>(GameInstance->GetPackagedItemClass());
-				if (PackagedItem)
+				if (ReceivePackage(World->SpawnActor<APackagedItem>(GameInstance->GetPackagedItemClass())))
 				{
 					Token = 1;
 				}
 			}
 		}
 	}
-	return PackagedItem;
 }

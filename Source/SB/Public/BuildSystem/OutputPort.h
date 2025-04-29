@@ -2,23 +2,15 @@
 
 #include "CoreMinimal.h"
 #include "BuildSystem/FacilityPort.h"
-#include "Items/PackageSupplier.h"
 #include "OutputPort.generated.h"
 
 UCLASS()
-class SB_API AOutputPort : public AFacilityPort, public IPackageSupplier
+class SB_API AOutputPort : public AFacilityPort
 {
 	GENERATED_BODY()
-	
-public:	
-	AOutputPort();
-	virtual void Tick(float DeltaTime) override;
 
-protected:
-	virtual void BeginPlay() override;
-
-public:	
-	virtual APackagedItem* SupplyPackage_Implementation() override;
+public:
+	virtual void TryReceivePackage() override;
 
 protected:
 	int32 LinkedItemDataIndex;

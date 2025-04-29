@@ -27,6 +27,9 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "PackageSupplier")
 	APackagedItem* SupplyPackage();
 
+	UFUNCTION(BlueprintNativeEvent, Category = "PackageSupplier")
+	bool IsConnectedToReceiver();
+
 protected:
 
 };

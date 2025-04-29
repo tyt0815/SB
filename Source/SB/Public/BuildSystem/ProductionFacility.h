@@ -30,10 +30,13 @@ class SB_API AProductionFacility : public ABuilding
 public:
 	AProductionFacility();
 	virtual void OnConstruction(const FTransform& Transform) override;
+	void InitializePorts();
+	void DestroyAllPorts();
 	virtual void Tick(float Delta) override;
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void BeginDestroy() override;
 
 public:
 	void StartProduction();
@@ -68,6 +71,6 @@ private:
 	float ProductionTimeLeft = 0;
 	bool bProducted = false;
 
-	TArray<class AInputPort*> InputPorts;
-	TArray<class AOutputPort*> OutputPorts;
+	TArray<UChildActorComponent*> InputPortComponents;
+	TArray<UChildActorComponent*> OutputPortComponents;
 };

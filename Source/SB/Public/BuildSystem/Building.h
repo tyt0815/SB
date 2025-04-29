@@ -68,6 +68,7 @@ protected:
 	virtual void InitMeshsVisibilityAndPhysics() override;
 	virtual void BeginDestroy() override;
 	void TraceBuilding(FVector Start, FVector End, FHitResult& HitResult);
+	void TraceBuildings(FVector Start, FVector End, TArray<FHitResult>& HitResults);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* BuildBlocker;

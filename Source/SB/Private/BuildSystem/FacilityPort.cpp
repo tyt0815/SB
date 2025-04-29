@@ -1,24 +1,11 @@
 #include "BuildSystem/FacilityPort.h"
-#include "Components/StaticMeshComponent.h"
 
-AFacilityPort::AFacilityPort()
+void AFacilityPort::Tick(float Delta)
 {
-	PrimaryActorTick.bCanEverTick = true;
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
-	SetRootComponent(StaticMesh);
-}
+	Super::Tick(Delta);
 
-void AFacilityPort::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+	// TODO: 여기서 하면 안됨...
 	UpdateToken();
-}
-
-void AFacilityPort::BeginPlay()
-{
-	Super::BeginPlay();
-	
 }
 
 void AFacilityPort::UpdateToken()

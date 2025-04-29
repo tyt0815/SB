@@ -17,6 +17,7 @@ ABuilding::ABuilding()
 	SkeletalMesh->SetCollisionProfileName("Building");
 	SkeletalMesh->SetupAttachment(BuildBlocker);
 	bStackable = false;
+	bSimulatePhysics = false;
 }
 
 
@@ -394,6 +395,31 @@ void ABuilding::TraceBuilding(FVector Start, FVector End, FHitResult& HitResult)
 		ActorsToIgnore,
 		EDrawDebugTrace::ForDuration,
 		HitResult,
+		true
+	);
+}
+
+void ABuilding::TraceBuildings(FVector Start, FVector End, TArray<FHitResult>& HitResults)
+{
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel2));
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	FVector BoxExtent = BuildBlocker->GetScaledBoxExtent();
+	BoxExtent.X = 0.0f;
+	FRotator Orient = (End - Start).Rotation();
+	UKismetSystemLibrary::BoxTraceMultiForObjects(
+		this,
+		Start,
+		End,
+		BoxExtent,
+		Orient,
+		ObjectTypes,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::None,
+		HitResults,
 		true
 	);
 }

@@ -4,11 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "BuildSystem/FacilityPort.h"
-#include "Items/PackageReceiver.h"
 #include "InputPort.generated.h"
 
 UCLASS()
-class SB_API AInputPort : public AFacilityPort, public IPackageReceiver
+class SB_API AInputPort : public AFacilityPort
 {
 	GENERATED_BODY()
 	
@@ -20,5 +19,5 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	virtual bool ReceivePackage_Implementation(APackagedItem* Package) override;
+	virtual void TrySupplyPackage() override;
 };
