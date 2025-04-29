@@ -6,7 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "SBWindowWidget.generated.h"
 
-class USBPlayerInventoryWidget;
+class UInventoryWidget;
 class UButton;
 class UWidgetSwitcher;
 class UInventoryComponent;
@@ -27,7 +27,7 @@ public:
 	
 private:
 	UPROPERTY(meta = (BindWidget))
-	USBPlayerInventoryWidget* PlayerInventoryWidget;
+	UInventoryWidget* PlayerInventoryWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* CloseButton;

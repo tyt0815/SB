@@ -1,6 +1,6 @@
 #include "Components/InventoryComponent.h"
 #include "Items/PackagedItem.h"
-#include "HUDs/SBPlayerInventoryWidget.h"
+#include "HUDs/InventoryWidget.h"
 #include "HUDs/ItemSlotWidget.h"
 #include "SB/DebugMacro.h"
 

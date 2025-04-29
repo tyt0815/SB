@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "SBPlayerInventoryWidget.generated.h"
+#include "InventoryWidget.generated.h"
 
 class UWrapBox;
 class UItemSlotWidget;
@@ -10,7 +10,7 @@ class UInventoryComponent;
 struct FItemData;
 
 UCLASS()
-class SB_API USBPlayerInventoryWidget : public UUserWidget
+class SB_API UInventoryWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

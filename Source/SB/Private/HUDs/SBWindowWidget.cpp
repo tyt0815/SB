@@ -1,8 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "HUDs/SBWindowWidget.h"
-#include "HUDs/SBPlayerInventoryWidget.h"
+#include "HUDs/InventoryWidget.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "PlayerController/SBPlayerController.h"

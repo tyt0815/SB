@@ -1,10 +1,10 @@
-#include "HUDs/SBPlayerInventoryWidget.h"
+#include "HUDs/InventoryWidget.h"
 #include "Components/InventoryComponent.h"
 #include "Components/WrapBox.h"
 #include "HUDs/ItemSlotWidget.h"
 #include "SB/DebugMacro.h"
 
-void USBPlayerInventoryWidget::UpdateInventory(UInventoryComponent* InventoryComponent)
+void UInventoryWidget::UpdateInventory(UInventoryComponent* InventoryComponent)
 {
 	UWorld* World = GetWorld();
 	if (World && InventoryComponent && ItemSlotClass)
@@ -29,7 +29,7 @@ void USBPlayerInventoryWidget::UpdateInventory(UInventoryComponent* InventoryCom
 	}
 }
 
-void USBPlayerInventoryWidget::UpdateItemSlotWidget(const FItemData* const Item, int i)
+void UInventoryWidget::UpdateItemSlotWidget(const FItemData* const Item, int i)
 {
 	if (ItemSlots.IsValidIndex(i))
 	{

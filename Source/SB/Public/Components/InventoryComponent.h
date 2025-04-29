@@ -7,7 +7,7 @@
 
 class AItem;
 class APackagedItem;
-class USBPlayerInventoryWidget;
+class UInventoryWidget;
 
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -39,7 +39,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = Inventory)
 	int InventorySize = 50;
 
-	USBPlayerInventoryWidget* InventoryWidget;
+	UInventoryWidget* InventoryWidget;
 	TArray<FItemData> Inventory;
 
 public:
@@ -55,7 +55,7 @@ public:
 	{
 		return Inventory[i];
 	}
-	FORCEINLINE void SetInventoryWidget(USBPlayerInventoryWidget* Widget)
+	FORCEINLINE void SetInventoryWidget(UInventoryWidget* Widget)
 	{
 		InventoryWidget = Widget;
 	}

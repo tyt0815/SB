@@ -1,8 +1,6 @@
 #include "HUDs/SBPlayerOverlayWidget.h"
-#include "HUDs/SBPlayerInventoryWidget.h"
 #include "HUDs/SBWindowWidget.h"
 #include "HUDs/InteractionListWidget.h"
-#include "Components/InventoryComponent.h"
 #include "SB/DebugMacro.h"
 
 void USBPlayerOverlayWidget::NativeConstruct()
