@@ -13,4 +13,7 @@ class SB_API AInputPort : public AFacilityPort
 
 public:	
 	virtual void TrySupplyPackage() override;
+
+protected:
+	virtual void AddInteractions() override;
 };

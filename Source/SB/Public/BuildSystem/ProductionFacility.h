@@ -67,10 +67,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Item | Building | ProductionFacility")
 	TArray<FProductionRecipe> Recipes;
 
+	TArray<UChildActorComponent*> InputPortComponents;
+	TArray<UChildActorComponent*> OutputPortComponents;
 	FItemData OutputData;
 	float ProductionTimeLeft = 0;
 	bool bProducted = false;
 
-	TArray<UChildActorComponent*> InputPortComponents;
-	TArray<UChildActorComponent*> OutputPortComponents;
 };

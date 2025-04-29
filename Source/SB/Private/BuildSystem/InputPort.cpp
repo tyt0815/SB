@@ -11,3 +11,7 @@ void AInputPort::TrySupplyPackage()
 		TryReceivePackage();
 	}
 }
+
+void AInputPort::AddInteractions()
+{
+}

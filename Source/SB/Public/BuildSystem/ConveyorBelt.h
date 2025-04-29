@@ -35,6 +35,7 @@ public:
 	virtual APackagedItem* SupplyPackage();
 	
 protected:
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
 	USplineComponent* SplineComponent;
 	

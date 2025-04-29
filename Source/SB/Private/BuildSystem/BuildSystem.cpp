@@ -37,6 +37,20 @@ FVector BuildSystem::SnapLocationXY(FVector WorldLocation)
 	return SnappedLocation;
 }
 
+FVector BuildSystem::SnapLocation(FVector WorldLocation)
+{
+	FVector SnappedLocation = SnapLocationXY(WorldLocation);
+	if (SnappedLocation.Z >= 0)
+	{
+		SnappedLocation.Z += CELL_SIZE * 0.5f;
+	}
+	else
+	{
+		SnappedLocation.Z -= CELL_SIZE * 0.5f;
+	}
+	return SnappedLocation;
+}
+
 FVector BuildSystem::CalculateBoxExtent(int X, int Y, int Z)
 {
 	int Offset = (CELL_SIZE / 2);

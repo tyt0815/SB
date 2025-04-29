@@ -12,7 +12,7 @@ AProductionFacility::AProductionFacility()
 	ProductionOutputs = CreateDefaultSubobject<UInventoryComponent>(TEXT("ProductionOutputs"));
 	ProductionOutputs->SetInventorySize(1);
 
-	CellExtent = FIntVector(3, 3, 3);
+	CellExtent = FIntVector(2, 2, 2);
 }
 
 void AProductionFacility::OnConstruction(const FTransform& Transform)
@@ -118,19 +118,6 @@ void AProductionFacility::Tick(float Delta)
 void AProductionFacility::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (Recipes.IsValidIndex(0))
-	{
-		for (auto a : Recipes[0].Ingrediant)
-		{
-			FItemData ItemData;
-			ItemData.bStackable = true;
-			ItemData.Name = "sibal";
-			ItemData.ItemClass = a.Key;
-			ItemData.Quantity = a.Value * 3;
-			ProductionInputs->AddItem(ItemData);
-		}
-	}
 }
 
 void AProductionFacility::BeginDestroy()

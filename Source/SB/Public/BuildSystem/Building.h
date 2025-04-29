@@ -62,7 +62,7 @@ public:
 	bool HasSufficientPower() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Building")
-	void SnapLocation(FVector WorldLocation);
+	void SnapLocationXY(FVector WorldLocation);
 
 protected:
 	virtual void InitMeshsVisibilityAndPhysics() override;

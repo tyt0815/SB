@@ -22,3 +22,7 @@ void AOutputPort::TryReceivePackage()
 		}
 	}
 }
+
+void AOutputPort::AddInteractions()
+{
+}

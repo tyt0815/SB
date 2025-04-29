@@ -24,13 +24,12 @@ ABuilding::ABuilding()
 void ABuilding::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	SCREEN_LOG_SINGLE_FRAME(FString::FromInt(PowerConsumption));
 }
 
 void ABuilding::BeginPlay()
 {
 	Super::BeginPlay();
-	SnapLocation(GetActorLocation());
+	SnapLocationXY(GetActorLocation());
 }
 
 void ABuilding::IncreasePowerConsumption(uint16 Power)
@@ -57,7 +56,7 @@ void ABuilding::PropagatePowerState()
 
 void ABuilding::Place(FVector WorldLocation)
 {
-	SnapLocation(WorldLocation);
+	SnapLocationXY(WorldLocation);
 	TryConnectToNearByFacility();
 }
 
@@ -358,7 +357,7 @@ bool ABuilding::HasSufficientPower() const
 	}
 }
 
-void ABuilding::SnapLocation(FVector WorldLocation)
+void ABuilding::SnapLocationXY(FVector WorldLocation)
 {
 	SetActorLocation(BuildSystem::SnapLocationXY(WorldLocation));
 }
@@ -405,16 +404,10 @@ void ABuilding::TraceBuildings(FVector Start, FVector End, TArray<FHitResult>& H
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel2));
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
-
-	FVector BoxExtent = BuildBlocker->GetScaledBoxExtent();
-	BoxExtent.X = 0.0f;
-	FRotator Orient = (End - Start).Rotation();
-	UKismetSystemLibrary::BoxTraceMultiForObjects(
+	UKismetSystemLibrary::LineTraceMultiForObjects(
 		this,
 		Start,
 		End,
-		BoxExtent,
-		Orient,
 		ObjectTypes,
 		false,
 		ActorsToIgnore,

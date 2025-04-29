@@ -13,6 +13,7 @@ public:
 	virtual void TryReceivePackage() override;
 
 protected:
+	virtual void AddInteractions() override;
 	int32 LinkedItemDataIndex;
 
 public:

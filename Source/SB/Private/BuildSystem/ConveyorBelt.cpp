@@ -97,8 +97,10 @@ void AConveyorBelt::TraceReceiver()
 {
 	float SplineLength = SplineComponent->GetSplineLength();
 	FVector Start = SplineComponent->GetLocationAtDistanceAlongSpline(SplineLength, ESplineCoordinateSpace::World);
-	FRotator Rotator = SplineComponent->GetRotationAtDistanceAlongSpline(SplineLength, ESplineCoordinateSpace::World);
-	FVector End = Start + Rotator.Vector();
+	FVector Direction = Start - GetActorLocation();
+	Direction.Z = 0.0f;
+	Direction.Normalize();
+	FVector End = Start + Direction;
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 
@@ -118,8 +120,10 @@ void AConveyorBelt::TraceReceiver()
 void AConveyorBelt::TraceSupplier()
 {
 	FVector Start = SplineComponent->GetLocationAtDistanceAlongSpline(0, ESplineCoordinateSpace::World);
-	FRotator Rotator = SplineComponent->GetRotationAtDistanceAlongSpline(0, ESplineCoordinateSpace::World);
-	FVector End = Start - Rotator.Vector();
+	FVector Direction = Start - GetActorLocation();
+	Direction.Z = 0.0f;
+	Direction.Normalize();
+	FVector End = Start + Direction;
 	TArray<FHitResult> HitResults;
 
 	TraceBuildings(Start, End, HitResults);
