@@ -29,37 +29,9 @@ void AProductionFacility::InitializePorts()
 {
 	// DestroyAllPorts();
 
-	// 부족한 컴포넌트 생성하기
-	for (int i = InputPortComponents.Num(); i < InputPortGridCoord.Num(); ++i)
-	{
-		UChildActorComponent* NewComponent = NewObject<UChildActorComponent>(this);
-		if (NewComponent)
-		{
-			InputPortComponents.Add(NewComponent);
-			NewComponent->RegisterComponent();
-		}
-	}
-	for (int i = OutputPortComponents.Num(); i < OutputPortGridCoord.Num(); ++i)
-	{
-		UChildActorComponent* NewComponent = NewObject<UChildActorComponent>(this);
-		if (NewComponent)
-		{
-			OutputPortComponents.Add(NewComponent);
-			NewComponent->RegisterComponent();
-		}
-	}
-
-	// 초과한 컴포넌트 파괴하기
-	for (int i = InputPortComponents.Num(); i > InputPortGridCoord.Num(); --i)
-	{
-		InputPortComponents[i]->DestroyComponent();
-	}
-	InputPortComponents.SetNum(InputPortGridCoord.Num());
-	for (int i = OutputPortComponents.Num(); i > OutputPortGridCoord.Num(); --i)
-	{
-		OutputPortComponents[i]->DestroyComponent();
-	}
-	OutputPortComponents.SetNum(OutputPortGridCoord.Num());
+	AdjustChildComponents(InputPortComponents, InputPortGridCoord.Num());
+	AdjustChildComponents(OutputPortComponents, OutputPortGridCoord.Num());
+	
 
 	// 컴포넌트 설정
 	for (int i = 0; i < InputPortComponents.Num(); ++i)
@@ -97,7 +69,7 @@ void AProductionFacility::InitializePorts()
 			AOutputPort* OutputPort = Cast<AOutputPort>(OutputPortComponent->GetChildActor());
 			if (OutputPort)
 			{
-				OutputPort->SetConnectedInventory(ProductionInputs);
+				OutputPort->SetConnectedInventory(ProductionOutputs);
 			}
 		}
 	}

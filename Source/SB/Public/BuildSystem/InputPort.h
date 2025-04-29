@@ -10,13 +10,6 @@ UCLASS()
 class SB_API AInputPort : public AFacilityPort
 {
 	GENERATED_BODY()
-	
-public:	
-	AInputPort();
-	virtual void Tick(float DeltaTime) override;
-
-protected:
-	virtual void BeginPlay() override;
 
 public:	
 	virtual void TrySupplyPackage() override;
