@@ -22,7 +22,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item | Building | ConveyorBelt | FacilityPort | OutputPort")
 	bool bInteractive = false;
 
-	int32 LinkedItemDataIndex;
+	int32 LinkedItemDataIndex = -1;
 
 private:
 	UFUNCTION()
