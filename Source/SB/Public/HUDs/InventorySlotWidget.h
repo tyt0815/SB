@@ -22,16 +22,20 @@ public:
 	void SetQuantity(int Value);
 	void SetThumnail(UTexture2D* Texture2D);
 	void SetItemData(FItemData* InItemData);
-	
-private:
+	void CopyItemData(FItemData NewData);
 
-	UPROPERTY(meta = (BindWidget))
+	UFUNCTION(BlueprintCallable, Category = "InventorySlotWidget")
+	void SwapItemData(UInventorySlotWidget* OtherSlot);
+	
+protected:
+
+	UPROPERTY(BlueprintReadOnly, Category = "InventorySlotWidget", meta = (BindWidget))
 	UButton* Button;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadOnly, Category = "InventorySlotWidget", meta = (BindWidget))
 	UTextBlock* Quantity;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadOnly, Category = "InventorySlotWidget", meta = (BindWidget))
 	UImage* Thumbnail;
 
 	FItemData* ItemData = nullptr;
