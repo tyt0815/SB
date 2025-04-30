@@ -1,7 +1,7 @@
 #include "HUDs/InventoryWidget.h"
 #include "Components/InventoryComponent.h"
 #include "Components/WrapBox.h"
-#include "HUDs/ItemSlotWidget.h"
+#include "HUDs/InventorySlotWidget.h"
 #include "SB/DebugMacro.h"
 
 void UInventoryWidget::Update(UInventoryComponent* InventoryComponent)
@@ -16,12 +16,12 @@ void UInventoryWidget::Update(UInventoryComponent* InventoryComponent)
 			const TArray<FItemData>& Inventory = InventoryComponent->GetInventory();
 			for (int i = ItemSlots.Num(); i < Inventory.Num(); ++i)
 			{
-				ItemSlots.Add(CreateWidget<UItemSlotWidget>(Controller, ItemSlotClass));
+				ItemSlots.Add(CreateWidget<UInventorySlotWidget>(Controller, ItemSlotClass));
 				if (ItemSlots[i])
 				{
 					WrapBox->AddChild(ItemSlots[i]);
 					ItemSlots[i]->SetIndex(i);
-					ItemSlots[i]->SetInventory(InventoryComponent);
+					ItemSlots[i]->SetInventoryWidget(this);
 					UpdateItemSlotWidget(&InventoryComponent->GetItemData(i), i);
 				}
 			}
@@ -33,8 +33,16 @@ void UInventoryWidget::UpdateItemSlotWidget(const FItemData* const Item, int i)
 {
 	if (ItemSlots.IsValidIndex(i))
 	{
-		UItemSlotWidget* Widget = ItemSlots[i];
+		UInventorySlotWidget* Widget = ItemSlots[i];
 		Widget->SetQuantity(Item->Quantity);
 		Widget->SetThumnail(Item->Thumbnail);
+	}
+}
+
+void UInventoryWidget::OnSlotClicked(int32 Index)
+{
+	if (ItemSlots.IsValidIndex(Index))
+	{
+		SCREEN_LOG(5, FString::FromInt(Index));
 	}
 }

@@ -1,7 +1,7 @@
 #include "Components/InventoryComponent.h"
 #include "Items/PackagedItem.h"
 #include "HUDs/InventoryWidget.h"
-#include "HUDs/ItemSlotWidget.h"
+#include "HUDs/InventorySlotWidget.h"
 #include "SB/DebugMacro.h"
 
 UInventoryComponent::UInventoryComponent()

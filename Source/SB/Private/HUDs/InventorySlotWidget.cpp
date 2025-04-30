@@ -1,19 +1,19 @@
-#include "HUDs/ItemSlotWidget.h"
+#include "HUDs/InventorySlotWidget.h"
+#include "HUDs/InventoryWidget.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
-#include "Components/InventoryComponent.h"
 #include "SB/DebugMacro.h"
 
-void UItemSlotWidget::NativeConstruct()
+void UInventorySlotWidget::NativeConstruct()
 {
 	if (Button)
 	{
-		Button->OnClicked.AddDynamic(this, &UItemSlotWidget::OnClicked);
+		Button->OnClicked.AddDynamic(this, &UInventorySlotWidget::OnClicked);
 	}
 }
 
-void UItemSlotWidget::SetQuantity(int Value)
+void UInventorySlotWidget::SetQuantity(int Value)
 {
 	if (Value == 0)
 	{
@@ -27,15 +27,15 @@ void UItemSlotWidget::SetQuantity(int Value)
 	}
 }
 
-void UItemSlotWidget::SetThumnail(UTexture2D* Texture2D)
+void UInventorySlotWidget::SetThumnail(UTexture2D* Texture2D)
 {
 	Thumbnail->SetBrushFromTexture(Texture2D);
 }
 
-void UItemSlotWidget::OnClicked()
+void UInventorySlotWidget::OnClicked()
 {
-	if (Inventory)
+	if (InventoryWidget)
 	{
-		Inventory->DropItem(Index, 1);
+		InventoryWidget->OnSlotClicked(Index);
 	}
 }

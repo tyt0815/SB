@@ -4,15 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "ItemSlotWidget.generated.h"
+#include "InventorySlotWidget.generated.h"
 
 class UButton;
 class UTextBlock;
 class UImage;
-class UInventoryComponent;
+class UInventoryWidget;
 
 UCLASS()
-class SB_API UItemSlotWidget : public UUserWidget
+class SB_API UInventorySlotWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -36,7 +36,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UImage* Thumbnail;
 
-	UInventoryComponent* Inventory;
+	UInventoryWidget* InventoryWidget;
 
 	int Index = -1;
 public:
@@ -44,8 +44,8 @@ public:
 	{
 		Index = i;
 	}
-	FORCEINLINE void SetInventory(UInventoryComponent* InInventory)
+	FORCEINLINE void SetInventoryWidget(UInventoryWidget* InInventoryWidget)
 	{
-		Inventory = InInventory;
+		InventoryWidget = InInventoryWidget;
 	}
 };

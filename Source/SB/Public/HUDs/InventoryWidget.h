@@ -5,7 +5,7 @@
 #include "InventoryWidget.generated.h"
 
 class UWrapBox;
-class UItemSlotWidget;
+class UInventorySlotWidget;
 class UInventoryComponent;
 struct FItemData;
 
@@ -17,14 +17,15 @@ class SB_API UInventoryWidget : public UUserWidget
 public:
 	void Update(UInventoryComponent* InventoryComponent);
 	void UpdateItemSlotWidget(const FItemData* const Item, int i);
+	void OnSlotClicked(int32 Index);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SBPlayerInventoryWidget")
-	TSubclassOf<UItemSlotWidget> ItemSlotClass;
+	TSubclassOf<UInventorySlotWidget> ItemSlotClass;
 	
 private:
 	UPROPERTY(meta = (BindWidget))
 	UWrapBox* WrapBox;
 
-	TArray<UItemSlotWidget*> ItemSlots;
+	TArray<UInventorySlotWidget*> ItemSlots;
 };
