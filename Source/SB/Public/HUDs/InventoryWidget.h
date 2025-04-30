@@ -15,7 +15,7 @@ class SB_API UInventoryWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void UpdateInventory(UInventoryComponent* InventoryComponent);
+	void Update(UInventoryComponent* InventoryComponent);
 	void UpdateItemSlotWidget(const FItemData* const Item, int i);
 
 protected:

@@ -29,7 +29,6 @@ protected:
 	virtual void AddInteractions();
 	void ActivateStaticMesh(bool bActive);
 	void ActivateSkeletalMesh(bool bActive);
-	void AdjustChildComponents(TArray<UChildActorComponent*>& Container, int32 Num);
 
 	UFUNCTION()
 	void AddToInventory(AActor* OtherActor);

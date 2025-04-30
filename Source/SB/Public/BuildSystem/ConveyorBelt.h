@@ -25,6 +25,8 @@ public:
 	AConveyorBelt();
 	virtual void Tick(float Delta) override;
 
+	void CarryPackage(float Delta);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -35,6 +37,8 @@ public:
 	virtual APackagedItem* SupplyPackage();
 	
 protected:
+	virtual void TraceReceiver();
+	virtual void TraceSupplier();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
 	USplineComponent* SplineComponent;
@@ -48,8 +52,6 @@ protected:
 	float ElapsedMoveTime = 0.0f;
 
 private:
-	void TraceReceiver();
-	void TraceSupplier();
 
 	AConveyorBelt* Receiver;
 	AConveyorBelt* Supplier;

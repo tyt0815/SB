@@ -1,4 +1,6 @@
 #include "BuildSystem/FacilityPort.h"
+#include "Components/InventoryComponent.h"
+#include "SB/DebugMacro.h"
 
 void AFacilityPort::Tick(float Delta)
 {
@@ -6,6 +8,13 @@ void AFacilityPort::Tick(float Delta)
 
 	// TODO: 여기서 하면 안됨...
 	UpdateToken();
+}
+
+void AFacilityPort::BeginPlay()
+{
+	Super::BeginPlay();
+
+	SetOwner(GetAttachParentActor());
 }
 
 void AFacilityPort::UpdateToken()

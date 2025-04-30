@@ -17,6 +17,11 @@ public:
 
 public:
 	void OpenInventoryWidget(UInventoryComponent* InventoryComponent);
+	void OpenProductionFacilityInfoWidget(
+		UInventoryComponent* PlayerInventoryComponent,
+		UInventoryComponent* InputInventoryComponent,
+		UInventoryComponent* OutputInventoryComponent
+	);
 	void ShowInteractionList(UInteractionComponent* InteractionComponent);
 	void HideInteractionList();
 	void FocusInteractionDescriptionAt(int32 i);

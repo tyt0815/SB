@@ -10,6 +10,7 @@ class UInventoryWidget;
 class UButton;
 class UWidgetSwitcher;
 class UInventoryComponent;
+class UProductionFacilityInfoWidget;
 
 UCLASS()
 class SB_API USBWindowWidget : public UUserWidget
@@ -20,6 +21,11 @@ public:
 
 public:
 	void OpenPlayerInventory(UInventoryComponent* InventoryComponent);
+	void OpenProductionFacilityInfoWidget(
+		UInventoryComponent* PlayerInventory,
+		UInventoryComponent* InputInventory,
+		UInventoryComponent* OutputInventory
+	);
 	void Open(UUserWidget* Widget);
 
 	UFUNCTION()
@@ -28,6 +34,9 @@ public:
 private:
 	UPROPERTY(meta = (BindWidget))
 	UInventoryWidget* PlayerInventoryWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	UProductionFacilityInfoWidget* ProductionFacilityInfoWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* CloseButton;

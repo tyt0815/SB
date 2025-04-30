@@ -4,6 +4,22 @@
 #include "Components/InteractionComponent.h"
 #include "Characters/Player/SBPlayer.h"
 #include "GameInstances/SBGameInstance.h"
+#include "SB/DebugMacro.h"
+
+void AOutputPort::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (Owner)
+	{
+		UInventoryComponent* InventoryComponent = Owner->FindComponentByTag<UInventoryComponent>("Outputs");
+		if (InventoryComponent == nullptr)
+		{
+			InventoryComponent = Owner->FindComponentByTag<UInventoryComponent>("Storage");
+		}
+		SetConnectedInventory(InventoryComponent);
+	}
+}
 
 void AOutputPort::TryReceivePackage()
 {

@@ -57,6 +57,10 @@ public:
 	void PlayReloadMontage(AWeapon* Weapon);
 	void PlayEquipMontage(AWeapon* Weapon);
 	bool PickUpItem(AItem* Item);
+	void OpenProductionFacilityInfoWidget(
+		UInventoryComponent* InputInventory,
+		UInventoryComponent* OutputInventory
+	);
 	TArray<TSubclassOf<ABuilding>> GetBuildingList();
 	bool IsFireReady() const;
 	bool IsUIMode() const;
@@ -135,6 +139,7 @@ private:
 	void Number1Started();
 	void Number2Started();
 	void Number3Started();
+	void Number0Started();
 	void SwitchWeapon(uint32 Index);
 	void SwitchToUnarmedState();
 	void SwitchBuildPreviewMesh(uint32 Index);

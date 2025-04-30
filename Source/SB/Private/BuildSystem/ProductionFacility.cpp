@@ -1,16 +1,21 @@
 #include "BuildSystem/ProductionFacility.h"
 #include "Components/InventoryComponent.h"
+#include "Components/InteractionComponent.h"
+#include "Characters/Player/SBPlayer.h"
 #include "BuildSystem/InputPort.h"
 #include "BuildSystem/OutputPort.h"
 #include "BuildSystem/BuildSystem.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "SB/DebugMacro.h"
 
 AProductionFacility::AProductionFacility()
 {
 	ProductionInputs = CreateDefaultSubobject<UInventoryComponent>(TEXT("ProductionInputs"));
 	ProductionInputs->SetInventorySize(3);
+	ProductionInputs->ComponentTags.Add("Inputs");
 	ProductionOutputs = CreateDefaultSubobject<UInventoryComponent>(TEXT("ProductionOutputs"));
 	ProductionOutputs->SetInventorySize(1);
+	ProductionOutputs->ComponentTags.Add("Outputs");
 
 	CellExtent = FIntVector(2, 2, 2);
 }
@@ -21,73 +26,6 @@ void AProductionFacility::OnConstruction(const FTransform& Transform)
 
 	ProductionInputs->SetInventorySize(FMath::Clamp(ProductionInputs->GetInventorySize(), 1, InputPortGridCoord.Num()));
 	ProductionOutputs->SetInventorySize(1);
-
-	InitializePorts();
-}
-
-void AProductionFacility::InitializePorts()
-{
-	// DestroyAllPorts();
-
-	AdjustChildComponents(InputPortComponents, InputPortGridCoord.Num());
-	AdjustChildComponents(OutputPortComponents, OutputPortGridCoord.Num());
-	
-
-	// 컴포넌트 설정
-	for (int i = 0; i < InputPortComponents.Num(); ++i)
-	{
-		UChildActorComponent* InputPortComponent = InputPortComponents[i];
-		if (InputPortComponent)
-		{
-			InputPortComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
-			InputPortComponent->SetRelativeLocation(BuildSystem::GetRelativeLocation(InputPortGridCoord[i]));
-			if (InputPortClass != InputPortComponent->GetChildActorClass())
-			{
-				InputPortComponent->DestroyChildActor();
-				InputPortComponent->SetChildActorClass(InputPortClass);
-			}
-
-			AInputPort* InputPort = Cast<AInputPort>(InputPortComponent->GetChildActor());
-			if (InputPort)
-			{
-				InputPort->SetConnectedInventory(ProductionInputs);
-			}
-		}
-	}
-	for (int i = 0; i < OutputPortComponents.Num(); ++i)
-	{
-		UChildActorComponent* OutputPortComponent = OutputPortComponents[i];
-		if (OutputPortComponent)
-		{
-			OutputPortComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
-			OutputPortComponent->SetRelativeLocation(BuildSystem::GetRelativeLocation(OutputPortGridCoord[i]));
-			if (OutputPortClass != OutputPortComponent->GetChildActorClass())
-			{
-				OutputPortComponent->DestroyChildActor();
-				OutputPortComponent->SetChildActorClass(OutputPortClass);
-			}
-			AOutputPort* OutputPort = Cast<AOutputPort>(OutputPortComponent->GetChildActor());
-			if (OutputPort)
-			{
-				OutputPort->SetConnectedInventory(ProductionOutputs);
-			}
-		}
-	}
-}
-
-void AProductionFacility::DestroyAllPorts()
-{
-	for (UChildActorComponent* Inputport : InputPortComponents)
-	{
-		Inputport->DestroyComponent();
-	}
-	InputPortComponents.Empty();
-
-	for (UChildActorComponent* Outputport : InputPortComponents)
-	{
-		Outputport->DestroyComponent();
-	}
-	InputPortComponents.Empty();
 }
 
 void AProductionFacility::Tick(float Delta)
@@ -177,14 +115,34 @@ void AProductionFacility::StartProduction()
 			}
 
 			AItem* Temp = World->SpawnActor<AItem>(Recipe.OutputItemClass);
-			OutputData = Temp->MakeItemData();
-			Temp->Destroy();
+			if (Temp)
+			{
+				OutputData = Temp->MakeItemData();
+				Temp->Destroy();
+			}
+			
 
 			
 			bProducted = true;
 			ProductionTimeLeft = Recipe.ProductionTime;
 			return;
 		}
+	}
+}
+
+void AProductionFacility::AddInteractions()
+{
+	int32 Index = InteractionComponent->AddInteraction("Info");
+	InteractionComponent->AddInteractionAt(Index, this, &AProductionFacility::ShowInfoWidget)
+	Super::AddInteractions();
+}
+
+void AProductionFacility::ShowInfoWidget(AActor* OtherActor)
+{
+	ASBPlayer* Player = Cast<ASBPlayer>(OtherActor);
+	if (Player)
+	{
+		Player->OpenProductionFacilityInfoWidget(ProductionInputs, ProductionOutputs);
 	}
 }
 

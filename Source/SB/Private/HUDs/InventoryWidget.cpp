@@ -4,7 +4,7 @@
 #include "HUDs/ItemSlotWidget.h"
 #include "SB/DebugMacro.h"
 
-void UInventoryWidget::UpdateInventory(UInventoryComponent* InventoryComponent)
+void UInventoryWidget::Update(UInventoryComponent* InventoryComponent)
 {
 	UWorld* World = GetWorld();
 	if (World && InventoryComponent && ItemSlotClass)

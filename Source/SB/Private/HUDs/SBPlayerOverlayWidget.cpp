@@ -14,6 +14,15 @@ void USBPlayerOverlayWidget::OpenInventoryWidget(UInventoryComponent* InventoryC
 	WindowWidget->OpenPlayerInventory(InventoryComponent);
 }
 
+void USBPlayerOverlayWidget::OpenProductionFacilityInfoWidget(
+	UInventoryComponent* PlayerInventoryComponent,
+	UInventoryComponent* InputInventoryComponent,
+	UInventoryComponent* OutputInventoryComponent
+)
+{
+	WindowWidget->OpenProductionFacilityInfoWidget(PlayerInventoryComponent, InputInventoryComponent, OutputInventoryComponent);
+}
+
 void USBPlayerOverlayWidget::ShowInteractionList(UInteractionComponent* InteractionComponent)
 {
 	InteractionList->Enable(InteractionComponent);

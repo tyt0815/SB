@@ -17,11 +17,12 @@ void UItemSlotWidget::SetQuantity(int Value)
 {
 	if (Value == 0)
 	{
-		SetVisibility(ESlateVisibility::Hidden);
+		Thumbnail->SetVisibility(ESlateVisibility::Hidden);
+		Quantity->SetText(FText());
 	}
 	else
 	{
-		SetVisibility(ESlateVisibility::Visible);
+		Thumbnail->SetVisibility(ESlateVisibility::Visible);
 		Quantity->SetText(FText::AsNumber(Value));
 	}
 }

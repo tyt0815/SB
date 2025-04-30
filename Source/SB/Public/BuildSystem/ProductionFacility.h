@@ -30,8 +30,6 @@ class SB_API AProductionFacility : public ABuilding
 public:
 	AProductionFacility();
 	virtual void OnConstruction(const FTransform& Transform) override;
-	void InitializePorts();
-	void DestroyAllPorts();
 	virtual void Tick(float Delta) override;
 
 protected:
@@ -41,8 +39,12 @@ protected:
 public:
 	void StartProduction();
 
-
 protected:
+	virtual void AddInteractions() override;
+
+	UFUNCTION()
+	void ShowInfoWidget(AActor* OtherActor);
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
 	UInventoryComponent* ProductionInputs;
 

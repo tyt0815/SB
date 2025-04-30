@@ -111,6 +111,10 @@ void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		{
 			EnhancedInputComponent->BindAction(NumberInputActions[3], ETriggerEvent::Started, this, &ASBPlayer::Number3Started);
 		}
+		if (NumberInputActions.IsValidIndex(0) && NumberInputActions[0])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[0], ETriggerEvent::Started, this, &ASBPlayer::Number0Started);
+		}
 	}
 }
 
@@ -217,6 +221,17 @@ void ASBPlayer::PlayEquipMontage(AWeapon* Weapon)
 bool ASBPlayer::PickUpItem(AItem* Item)
 {
 	return Inventory->AddItem(Item);
+}
+
+void ASBPlayer::OpenProductionFacilityInfoWidget(
+	UInventoryComponent* InputInventory,
+	UInventoryComponent* OutputInventory
+)
+{
+	if (OverlayWidget)
+	{
+		OverlayWidget->OpenProductionFacilityInfoWidget(Inventory, InputInventory, OutputInventory);
+	}
 }
 
 TArray<TSubclassOf<ABuilding>> ASBPlayer::GetBuildingList()
@@ -418,7 +433,7 @@ void ASBPlayer::IStarted()
 {
 	if (OverlayWidget)
 	{
-		PlayerController->SwitchToUIMode(true);
+		
 		OverlayWidget->OpenInventoryWidget(Inventory);
 	}
 }
@@ -458,6 +473,14 @@ void ASBPlayer::Number2Started()
 void ASBPlayer::Number3Started()
 {
 	NumberKeysStarted(3);
+}
+
+void ASBPlayer::Number0Started()
+{
+	if (ControllMode == ECharacterControllMode::ECCM_Build)
+	{
+
+	}
 }
 
 void ASBPlayer::SwitchWeapon(uint32 Index)

@@ -14,6 +14,9 @@ class SB_API AFacilityPort : public AConveyorBelt
 public:
 	virtual void Tick(float Delta) override;
 
+protected:
+	virtual void BeginPlay() override;
+
 public:
 	void UpdateToken();
 

@@ -109,23 +109,3 @@ void AItem::ActivateSkeletalMesh(bool bActive)
 		SkeletalMesh->SetSimulatePhysics(bActive);
 	}
 }
-
-void AItem::AdjustChildComponents(TArray<UChildActorComponent*>& Container, int32 Num)
-{
-	// 부족한 컴포넌트 생성
-	for (int32 i = Container.Num(); i < Num; ++i)
-	{
-		UChildActorComponent* NewComponent = NewObject<UChildActorComponent>(this);
-		if (NewComponent)
-		{
-			Container.Add(NewComponent);
-			NewComponent->RegisterComponent();
-		}
-	}
-	// 초과한 컴포넌트 파괴하기
-	for (int i = Container.Num(); i > Num; --i)
-	{
-		Container[i - 1]->DestroyComponent();
-	}
-	Container.SetNum(Num);
-}

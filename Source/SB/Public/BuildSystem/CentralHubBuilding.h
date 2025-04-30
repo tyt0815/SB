@@ -13,7 +13,6 @@ class SB_API ACentralHubBuilding : public AGridBuilding
 public:
 	ACentralHubBuilding();
 	virtual void Tick(float Delta) override;
-	virtual void OnConstruction(const FTransform& Transform) override;
 
 public:
 	virtual void PropagatePowerState() override;
@@ -46,7 +45,4 @@ protected:
 	int PowerCapacity = 500;
 	int PrevPowerCapacity = 0;
 	int PrevPowerConsumption = 0;
-
-private:
-	void InitializePorts();
 };

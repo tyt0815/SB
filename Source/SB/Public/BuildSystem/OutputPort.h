@@ -9,13 +9,17 @@ class SB_API AOutputPort : public AFacilityPort
 {
 	GENERATED_BODY()
 
+protected:
+	virtual void BeginPlay() override;
+
 public:
 	virtual void TryReceivePackage() override;
 
 protected:
 	virtual void AddInteractions() override;
+	virtual void TraceSupplier() override {};
 
-	UPROPERTY(BlueprintReadOnly, Category = "Item | Building | ConveyorBelt | FacilityPort | OutputPort")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item | Building | ConveyorBelt | FacilityPort | OutputPort")
 	bool bInteractive = false;
 
 	int32 LinkedItemDataIndex;

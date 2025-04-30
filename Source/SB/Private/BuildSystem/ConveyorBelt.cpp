@@ -23,6 +23,11 @@ void AConveyorBelt::Tick(float Delta)
 
 	TraceReceiver();
 	TraceSupplier();
+	CarryPackage(Delta);
+}
+
+void AConveyorBelt::CarryPackage(float Delta)
+{
 	if (CarriedPackage)
 	{
 		ElapsedMoveTime += Delta;

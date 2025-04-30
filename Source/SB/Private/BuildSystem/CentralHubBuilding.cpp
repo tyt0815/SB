@@ -5,11 +5,13 @@
 #include "BuildSystem/OutputPort.h"
 #include "Components/InventoryComponent.h"
 #include "Components/ChildActorComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ACentralHubBuilding::ACentralHubBuilding()
 {
 	StorageComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("Storage"));
 	StorageComponent->SetInventorySize(100.0f);
+	StorageComponent->ComponentTags.Add("Storage");
 }
 
 void ACentralHubBuilding::Tick(float Delta)
@@ -21,13 +23,6 @@ void ACentralHubBuilding::Tick(float Delta)
 		PrevPowerConsumption = PowerConsumption;
 		PropagatePowerState();
 	}
-}
-
-void ACentralHubBuilding::OnConstruction(const FTransform& Transform)
-{
-	Super::OnConstruction(Transform);
-
-	InitializePorts();
 }
 
 void ACentralHubBuilding::PropagatePowerState()
@@ -93,54 +88,4 @@ void ACentralHubBuilding::OnEndOverlapGridBoundary(UPrimitiveComponent* Overlapp
 	Super::OnEndOverlapGridBoundary(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
 	ABuilding* Building = Cast<ABuilding>(OtherActor);
 	DisconnectToBuilding(Building);
-}
-
-void ACentralHubBuilding::InitializePorts()
-{
-	// DestroyAllPorts();
-
-	AdjustChildComponents(InputPortComponents, InputPortGridCoord.Num());
-	AdjustChildComponents(OutputPortComponents, OutputPortGridCoord.Num());
-
-
-	// 컴포넌트 설정
-	for (int i = 0; i < InputPortComponents.Num(); ++i)
-	{
-		UChildActorComponent* InputPortComponent = InputPortComponents[i];
-		if (InputPortComponent)
-		{
-			InputPortComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
-			InputPortComponent->SetRelativeLocation(BuildSystem::GetRelativeLocation(InputPortGridCoord[i]));
-			if (InputPortClass != InputPortComponent->GetChildActorClass())
-			{
-				InputPortComponent->DestroyChildActor();
-				InputPortComponent->SetChildActorClass(InputPortClass);
-			}
-
-			AInputPort* InputPort = Cast<AInputPort>(InputPortComponent->GetChildActor());
-			if (InputPort)
-			{
-				InputPort->SetConnectedInventory(StorageComponent);
-			}
-		}
-	}
-	for (int i = 0; i < OutputPortComponents.Num(); ++i)
-	{
-		UChildActorComponent* OutputPortComponent = OutputPortComponents[i];
-		if (OutputPortComponent)
-		{
-			OutputPortComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
-			OutputPortComponent->SetRelativeLocation(BuildSystem::GetRelativeLocation(OutputPortGridCoord[i]));
-			if (OutputPortClass != OutputPortComponent->GetChildActorClass())
-			{
-				OutputPortComponent->DestroyChildActor();
-				OutputPortComponent->SetChildActorClass(OutputPortClass);
-			}
-			AOutputPort* OutputPort = Cast<AOutputPort>(OutputPortComponent->GetChildActor());
-			if (OutputPort)
-			{
-				OutputPort->SetConnectedInventory(StorageComponent);
-			}
-		}
-	}
 }
