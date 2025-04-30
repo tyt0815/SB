@@ -234,6 +234,23 @@ void ASBPlayer::OpenProductionFacilityInfoWidget(
 	}
 }
 
+void ASBPlayer::OpenHUBOutputPortInfoWidget(UInventoryComponent* HUBStorageComponent, FItemData* OutputItemData)
+{
+	if (OverlayWidget)
+	{
+		OverlayWidget->OpenHUBOutputPortInfoWidget(HUBStorageComponent, OutputItemData);
+	}
+}
+
+void ASBPlayer::OpenHubInfoWidget(UInventoryComponent* HubStorageComponent)
+{
+	if (OverlayWidget)
+	{
+		OverlayWidget->OpenHUBInfoWidget(HubStorageComponent, Inventory);
+	}
+}
+
+
 TArray<TSubclassOf<ABuilding>> ASBPlayer::GetBuildingList()
 {
 	return BuildingClasses;

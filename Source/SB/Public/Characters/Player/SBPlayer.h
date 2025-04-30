@@ -21,6 +21,7 @@ class ABuilding;
 class ABuildCameraPawn;
 class ABuildingCreater;
 struct FInputActionValue;
+struct FItemData;
 
 USTRUCT(BlueprintType)
 struct FWeaponMontageSet
@@ -61,6 +62,11 @@ public:
 		UInventoryComponent* InputInventory,
 		UInventoryComponent* OutputInventory
 	);
+	void OpenHUBOutputPortInfoWidget(
+		UInventoryComponent* HUBStorageComponent,
+		FItemData* OutputItemData
+	);
+	void OpenHubInfoWidget(UInventoryComponent* HubStorageComponent);
 	TArray<TSubclassOf<ABuilding>> GetBuildingList();
 	bool IsFireReady() const;
 	bool IsUIMode() const;

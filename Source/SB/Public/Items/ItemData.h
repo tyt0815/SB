@@ -7,4 +7,5 @@ struct FItemData
 	FName Name;
 	int Quantity = 0;
 	bool bStackable = false;
+	TArray<class UInventorySlotWidget*> LinkedSlots;
 };

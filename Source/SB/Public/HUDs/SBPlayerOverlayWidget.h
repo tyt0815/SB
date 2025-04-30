@@ -7,6 +7,7 @@
 class UInventoryComponent;
 class UInteractionComponent;
 class USBWindowWidget;
+struct FItemData;
 
 UCLASS()
 class SB_API USBPlayerOverlayWidget : public UUserWidget
@@ -22,6 +23,11 @@ public:
 		UInventoryComponent* InputInventoryComponent,
 		UInventoryComponent* OutputInventoryComponent
 	);
+	void OpenHUBOutputPortInfoWidget(
+		UInventoryComponent* HUBStorageComponent,
+		FItemData* OutputData
+	);
+	void OpenHUBInfoWidget(UInventoryComponent* HUBStorageComponent, UInventoryComponent* PlayerInventoryComponent);
 	void ShowInteractionList(UInteractionComponent* InteractionComponent);
 	void HideInteractionList();
 	void FocusInteractionDescriptionAt(int32 i);

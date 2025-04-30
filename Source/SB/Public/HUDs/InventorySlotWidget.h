@@ -10,6 +10,7 @@ class UButton;
 class UTextBlock;
 class UImage;
 class UInventoryWidget;
+struct FItemData;
 
 UCLASS()
 class SB_API UInventorySlotWidget : public UUserWidget
@@ -17,15 +18,12 @@ class SB_API UInventorySlotWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	virtual void NativeConstruct() override;
-
-public:
+	void Update();
 	void SetQuantity(int Value);
 	void SetThumnail(UTexture2D* Texture2D);
+	void SetItemData(FItemData* InItemData);
 	
 private:
-	UFUNCTION()
-	void OnClicked();
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* Button;
@@ -36,7 +34,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UImage* Thumbnail;
 
-	UInventoryWidget* InventoryWidget;
+	FItemData* ItemData = nullptr;
 
 	int Index = -1;
 public:
@@ -44,8 +42,8 @@ public:
 	{
 		Index = i;
 	}
-	FORCEINLINE void SetInventoryWidget(UInventoryWidget* InInventoryWidget)
+	FORCEINLINE FItemData* GetItemDataPtr() const
 	{
-		InventoryWidget = InInventoryWidget;
+		return ItemData;
 	}
 };

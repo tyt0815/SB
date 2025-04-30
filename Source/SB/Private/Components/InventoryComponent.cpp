@@ -40,7 +40,24 @@ void UInventoryComponent::UpdateItemWidget(int i)
 {
 	if (Inventory.IsValidIndex(i) && InventoryWidget)
 	{
-		InventoryWidget->UpdateItemSlotWidget(&Inventory[i], i);
+		Inventory[i].LinkedSlots.Remove(nullptr);
+		TArray<UInventorySlotWidget*> InvalidSlots;
+		for (UInventorySlotWidget* SlotWidget : Inventory[i].LinkedSlots)
+		{
+			if (SlotWidget->GetItemDataPtr() == &Inventory[i])
+			{
+				SlotWidget->Update();
+			
+			}
+			else
+			{
+				InvalidSlots.Add(SlotWidget);
+			}
+		}
+		for (UInventorySlotWidget* InvalidSlot : InvalidSlots)
+		{
+			Inventory[i].LinkedSlots.Remove(InvalidSlot);
+		}
 	}
 }
 

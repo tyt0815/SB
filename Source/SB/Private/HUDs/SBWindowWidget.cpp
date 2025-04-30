@@ -1,6 +1,8 @@
 #include "HUDs/SBWindowWidget.h"
 #include "HUDs/InventoryWidget.h"
 #include "HUDs/ProductionFacilityInfoWidget.h"
+#include "HUDs/CentralHUBOutputportInfoWidget.h"
+#include "HUDs/CentralHUBInfoWidget.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "PlayerController/SBPlayerController.h"
@@ -27,6 +29,21 @@ void USBWindowWidget::OpenProductionFacilityInfoWidget(
 {
 	Open(ProductionFacilityInfoWidget);
 	ProductionFacilityInfoWidget->Update(PlayerInventory, InputInventory, OutputInventory);
+}
+
+void USBWindowWidget::OpenCentralHUBOutputportInfoWidget(UInventoryComponent* HUBStorageComponent, FItemData* OutputData)
+{
+	Open(CentralHUBOutputPortInfoWidget);
+	CentralHUBOutputPortInfoWidget->Update(HUBStorageComponent, OutputData);
+}
+
+void USBWindowWidget::OpenCentralHUBInfoWidget(
+	UInventoryComponent* HUBStorageComponent,
+	UInventoryComponent* PlayerInventoryComponent
+)
+{
+	Open(CentralHUBInfoWidget);
+	CentralHUBInfoWidget->Update(HUBStorageComponent, PlayerInventoryComponent);
 }
 
 void USBWindowWidget::Open(UUserWidget* Widget)

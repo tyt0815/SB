@@ -4,7 +4,9 @@
 #include "BuildSystem/InputPort.h"
 #include "BuildSystem/OutputPort.h"
 #include "Components/InventoryComponent.h"
+#include "Components/InteractionComponent.h"
 #include "Components/ChildActorComponent.h"
+#include "Characters/Player/SBPlayer.h"
 #include "Kismet/KismetMathLibrary.h"
 
 ACentralHubBuilding::ACentralHubBuilding()
@@ -76,6 +78,12 @@ void ACentralHubBuilding::TryConnectToNearByFacility()
 	}
 }
 
+void ACentralHubBuilding::AddInteractions()
+{
+	int32 Index = InteractionComponent->AddInteraction("Info");
+	InteractionComponent->AddInteractionAt(Index, this, &ACentralHubBuilding::ShowInfo);
+}
+
 void ACentralHubBuilding::OnBeginOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Super::OnBeginOverlapGridBoundary(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
@@ -88,4 +96,13 @@ void ACentralHubBuilding::OnEndOverlapGridBoundary(UPrimitiveComponent* Overlapp
 	Super::OnEndOverlapGridBoundary(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
 	ABuilding* Building = Cast<ABuilding>(OtherActor);
 	DisconnectToBuilding(Building);
+}
+
+void ACentralHubBuilding::ShowInfo(AActor* OtherActor)
+{
+	ASBPlayer* Player = Cast<ASBPlayer>(OtherActor);
+	if (Player)
+	{
+		Player->OpenHubInfoWidget(StorageComponent);
+	}
 }

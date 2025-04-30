@@ -22,6 +22,7 @@ public:
 	virtual void TryConnectToNearByFacility() override;
 
 protected:
+	virtual void AddInteractions() override;
 	virtual void OnBeginOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 	virtual void OnEndOverlapGridBoundary(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
 
@@ -45,4 +46,8 @@ protected:
 	int PowerCapacity = 500;
 	int PrevPowerCapacity = 0;
 	int PrevPowerConsumption = 0;
+
+private:
+	UFUNCTION()
+	void ShowInfo(AActor* OtherActor);
 };

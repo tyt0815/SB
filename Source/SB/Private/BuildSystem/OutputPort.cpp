@@ -52,4 +52,14 @@ void AOutputPort::AddInteractions()
 
 void AOutputPort::ShowInfo(AActor* Actor)
 {
+	ASBPlayer* Player = Cast<ASBPlayer>(Actor);
+	if (Player)
+	{
+		FItemData* ItemData = nullptr;
+		if (ConnectedInventory->IsValidIndex(LinkedItemDataIndex))
+		{
+			ItemData = ConnectedInventory->GetItemDataPtr(LinkedItemDataIndex);
+		}
+		Player->OpenHUBOutputPortInfoWidget(ConnectedInventory, ItemData);
+	}
 }

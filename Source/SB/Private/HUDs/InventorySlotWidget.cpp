@@ -3,13 +3,19 @@
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "Items/ItemData.h"
 #include "SB/DebugMacro.h"
 
-void UInventorySlotWidget::NativeConstruct()
+void UInventorySlotWidget::Update()
 {
-	if (Button)
+	if (ItemData)
 	{
-		Button->OnClicked.AddDynamic(this, &UInventorySlotWidget::OnClicked);
+		SetQuantity(ItemData->Quantity);
+		SetThumnail(ItemData->Thumbnail);
+	}
+	else
+	{
+		SetQuantity(0);
 	}
 }
 
@@ -32,10 +38,12 @@ void UInventorySlotWidget::SetThumnail(UTexture2D* Texture2D)
 	Thumbnail->SetBrushFromTexture(Texture2D);
 }
 
-void UInventorySlotWidget::OnClicked()
+void UInventorySlotWidget::SetItemData(FItemData* InItemData)
 {
-	if (InventoryWidget)
+	ItemData = InItemData;
+	if (ItemData)
 	{
-		InventoryWidget->OnSlotClicked(Index);
+		ItemData->LinkedSlots.AddUnique(this);
 	}
+	Update();
 }

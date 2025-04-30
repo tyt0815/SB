@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Items/ItemData.h"
 #include "SBWindowWidget.generated.h"
 
 class UInventoryWidget;
@@ -11,6 +12,8 @@ class UButton;
 class UWidgetSwitcher;
 class UInventoryComponent;
 class UProductionFacilityInfoWidget;
+class UCentralHUBOutputportInfoWidget;
+class UCentralHUBInfoWidget;
 
 UCLASS()
 class SB_API USBWindowWidget : public UUserWidget
@@ -26,6 +29,14 @@ public:
 		UInventoryComponent* InputInventory,
 		UInventoryComponent* OutputInventory
 	);
+	void OpenCentralHUBOutputportInfoWidget(
+		UInventoryComponent* HUBStorageComponent,
+		FItemData* OutputData
+	);
+	void OpenCentralHUBInfoWidget(
+		UInventoryComponent* HUBStorageComponent,
+		UInventoryComponent* PlayerInventoryComponent
+	);
 	void Open(UUserWidget* Widget);
 
 	UFUNCTION()
@@ -37,6 +48,12 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UProductionFacilityInfoWidget* ProductionFacilityInfoWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	UCentralHUBOutputportInfoWidget* CentralHUBOutputPortInfoWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	UCentralHUBInfoWidget* CentralHUBInfoWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* CloseButton;

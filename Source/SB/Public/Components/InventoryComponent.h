@@ -55,6 +55,10 @@ public:
 	{
 		return Inventory[i];
 	}
+	FORCEINLINE FItemData* GetItemDataPtr(int32 i)
+	{
+		return &Inventory[i];
+	}
 	FORCEINLINE void SetInventoryWidget(UInventoryWidget* Widget)
 	{
 		InventoryWidget = Widget;
