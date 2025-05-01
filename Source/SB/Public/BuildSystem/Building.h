@@ -55,7 +55,7 @@ public:
 	float GetHeight() const;
 	void SetVisibility(bool bVisibility);
 	virtual void SetAsPreview();
-	void SetAllMaterials(UMaterialInterface* Material);
+	virtual void SetAllMaterials(UMaterialInterface* Material);
 	void SetPowerState(bool bOn);
 	// 외곽선을 그린다. 색상은 PP_HightlightMaterial_Inst 의 색상을 참고.
 	void SetOutlineDraw(bool bDraw, int Color);
@@ -70,7 +70,7 @@ public:
 protected:
 	virtual void InitMeshsVisibilityAndPhysics() override;
 	virtual void BeginDestroy() override;
-	virtual void AddToInventory(AActor* OtherActor) override;
+	virtual void OnPickedUp(AActor* OtherActor) override;
 	void TraceBuilding(FVector Start, FVector End, FHitResult& HitResult);
 	void TraceBuildings(FVector Start, FVector End, TArray<FHitResult>& HitResults);
 

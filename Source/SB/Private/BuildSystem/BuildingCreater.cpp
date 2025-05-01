@@ -51,7 +51,8 @@ void ABuildingCreater::SetPreviewBuilding(TSubclassOf<ABuilding> BuildingClass)
 		PreviewBuilding = GetWorld()->SpawnActor<ABuilding>(PreviewBuildingClass);
 		if (PreviewBuilding)
 		{
-			PreviewBuilding->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+			PreviewBuilding->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+			PreviewBuilding->SetActorRelativeLocation(FVector(0.0f, 0.0f, PreviewBuilding->GetZOffset()));
 			PreviewBuilding->SetAsPreview();
 			UpdateBuildableStateAndSetPreviewBuildingMaterial();
 			HiddenInGame(false);

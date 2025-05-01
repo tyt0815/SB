@@ -21,7 +21,6 @@ void AFacilityPort::BeginPlay()
 	Super::BeginPlay();
 
 	SetOwner(GetAttachParentActor());
-	BuildBlocker->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AFacilityPort::UpdateToken()

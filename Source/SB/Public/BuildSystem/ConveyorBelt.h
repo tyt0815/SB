@@ -35,6 +35,8 @@ public:
 	virtual void TryReceivePackage();
 	virtual bool ReceivePackage(APackagedItem* Package);
 	virtual APackagedItem* SupplyPackage();
+	virtual void SetAsPreview() override;
+	virtual void SetAllMaterials(UMaterialInterface* Material) override;
 	
 protected:
 	virtual void TraceReceiver();

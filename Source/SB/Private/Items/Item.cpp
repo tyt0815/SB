@@ -74,10 +74,10 @@ void AItem::InitMeshsVisibilityAndPhysics()
 void AItem::AddInteractions()
 {
 	int i = InteractionComponent->AddInteraction("Pick Up");
-	InteractionComponent->AddInteractionAt(i, this, &AItem::AddToInventory);
+	InteractionComponent->AddInteractionAt(i, this, &AItem::OnPickedUp);
 }
 
-void AItem::AddToInventory(AActor* OtherActor)
+void AItem::OnPickedUp(AActor* OtherActor)
 {
 	if (OtherActor)
 	{

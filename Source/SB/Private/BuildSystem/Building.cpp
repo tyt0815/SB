@@ -292,7 +292,6 @@ void ABuilding::SetAsPreview()
 	SkeletalMesh->bReceivesDecals = false;
 	StaticMesh->SetSimulatePhysics(false);
 	SkeletalMesh->SetSimulatePhysics(false);
-	SetActorRelativeLocation(FVector(0.0f, 0.0f, GetZOffset()));
 	TArray<AActor*> ChildActors;
 	GetAllChildActors(ChildActors, true);
 	for (AActor* Child : ChildActors)
@@ -386,10 +385,10 @@ void ABuilding::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void ABuilding::AddToInventory(AActor* OtherActor)
+void ABuilding::OnPickedUp(AActor* OtherActor)
 {
 	TryDisconnectToBuilding();
-	Super::AddToInventory(OtherActor);
+	Destroy();
 }
 
 void ABuilding::TraceBuilding(FVector Start, FVector End, FHitResult& HitResult)

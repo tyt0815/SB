@@ -269,6 +269,7 @@ void ABuildCameraPawn::TraceUnderMouseCursor()
 	FVector LineTraceEnd = MouseWorldPosition + MouseWorldDirection * 10000.0f;
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
+	ActorsToIgnore.Add(PlayerCharacter);
 	UKismetSystemLibrary::LineTraceSingle(
 		this,
 		MouseWorldPosition,
@@ -370,10 +371,8 @@ void ABuildCameraPawn::SwitchToPlacementMode(int i)
 	if (PlayerCharacter)
 	{
 		TArray<TSubclassOf<ABuilding>> BuildingList = PlayerCharacter->GetBuildingList();
-		SCREEN_LOG_NONE_KEY("sibal");
 		if (BuildingList.IsValidIndex(i))
 		{
-			SCREEN_LOG_NONE_KEY("sibal2");
 			BuildingCreater->SetPreviewBuilding(BuildingList[i]);
 		}
 	}

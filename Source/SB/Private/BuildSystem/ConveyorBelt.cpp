@@ -98,6 +98,41 @@ APackagedItem* AConveyorBelt::SupplyPackage()
 	return nullptr;
 }
 
+void AConveyorBelt::SetAsPreview()
+{
+	Super::SetAsPreview();
+
+	TArray<USceneComponent*> ChildsOfSpline;
+	SplineComponent->GetChildrenComponents(true, ChildsOfSpline);
+	for (USceneComponent* Child : ChildsOfSpline)
+	{
+		USplineMeshComponent* SplineMesh = Cast<USplineMeshComponent>(Child);
+		if (SplineMesh)
+		{
+			SplineMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+	}
+}
+
+void AConveyorBelt::SetAllMaterials(UMaterialInterface* Material)
+{
+	Super::SetAllMaterials(Material);
+	TArray<USceneComponent*> ChildsOfSpline;
+	SplineComponent->GetChildrenComponents(true, ChildsOfSpline);
+	for (USceneComponent* Child : ChildsOfSpline)
+	{
+		USplineMeshComponent* SplineMesh = Cast<USplineMeshComponent>(Child);
+		if (SplineMesh)
+		{
+			int32 MaterialNum = SplineMesh->GetNumMaterials();
+			for (int32 i = 0; i < MaterialNum; ++i)
+			{
+				SplineMesh->SetMaterial(i, Material);
+			}
+		}
+	}
+}
+
 void AConveyorBelt::TraceReceiver()
 {
 	float SplineLength = SplineComponent->GetSplineLength();

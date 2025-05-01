@@ -31,7 +31,7 @@ protected:
 	void ActivateSkeletalMesh(bool bActive);
 
 	UFUNCTION()
-	virtual void AddToInventory(AActor* OtherActor);
+	virtual void OnPickedUp(AActor* OtherActor);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
 	UStaticMeshComponent* StaticMesh;

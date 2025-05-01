@@ -56,6 +56,16 @@ void AProductionFacility::Tick(float Delta)
 void AProductionFacility::BeginPlay()
 {
 	Super::BeginPlay();
+
+	TArray<AActor*> ChildActors;
+	GetAllChildActors(ChildActors);
+	for (AActor* Actor : ChildActors)
+	{
+		if (Actor)
+		{
+			
+		}
+	}
 }
 
 void AProductionFacility::BeginDestroy()
