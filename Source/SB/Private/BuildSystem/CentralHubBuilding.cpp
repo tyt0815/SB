@@ -27,6 +27,28 @@ void ACentralHubBuilding::Tick(float Delta)
 	}
 }
 
+void ACentralHubBuilding::BeginPlay()
+{
+	Super::BeginPlay();
+
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		for (auto ItemClass : InitialItemClasses)
+		{
+			if (ItemClass)
+			{
+				AItem* Item = World->SpawnActor<AItem>(ItemClass);
+				FItemData ItemData = Item->MakeItemData();
+				ItemData.Quantity = 99999;
+				StorageComponent->AddItem(ItemData);
+				Item->Destroy();
+			}
+		}
+	}
+	
+}
+
 void ACentralHubBuilding::PropagatePowerState()
 {
 	for (ABuilding* Building : ChildBuildings)

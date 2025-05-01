@@ -20,6 +20,7 @@ class AWeapon;
 class ABuilding;
 class ABuildCameraPawn;
 class ABuildingCreater;
+class AOutputPort;
 struct FInputActionValue;
 struct FItemData;
 
@@ -62,10 +63,7 @@ public:
 		UInventoryComponent* InputInventory,
 		UInventoryComponent* OutputInventory
 	);
-	void OpenHUBOutputPortInfoWidget(
-		UInventoryComponent* HUBStorageComponent,
-		FItemData* OutputItemData
-	);
+	void OpenHUBOutputPortInfoWidget(UInventoryComponent* HUBStorageComponent, AOutputPort* OutputPort);
 	void OpenHubInfoWidget(UInventoryComponent* HubStorageComponent);
 	TArray<TSubclassOf<ABuilding>> GetBuildingList();
 	bool IsFireReady() const;
@@ -145,6 +143,10 @@ private:
 	void Number1Started();
 	void Number2Started();
 	void Number3Started();
+	void Number4Started();
+	void Number5Started();
+	void Number6Started();
+	void Number7Started();
 	void Number0Started();
 	void SwitchWeapon(uint32 Index);
 	void SwitchToUnarmedState();

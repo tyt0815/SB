@@ -120,6 +120,14 @@ void ABuildingCreater::CancelPreview()
 	HiddenInGame(true);
 }
 
+void ABuildingCreater::RotatePreviewBuildingClockwise90()
+{
+	if (PreviewBuilding)
+	{
+		PreviewBuilding->RotateClockwise90();
+	}
+}
+
 FVector ABuildingCreater::GetCellLocation(int i, int j)
 {
 	FVector Location;

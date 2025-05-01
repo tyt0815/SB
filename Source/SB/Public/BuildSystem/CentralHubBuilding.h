@@ -14,6 +14,9 @@ public:
 	ACentralHubBuilding();
 	virtual void Tick(float Delta) override;
 
+protected:
+	virtual void BeginPlay() override;
+
 public:
 	virtual void PropagatePowerState() override;
 	virtual bool IsOperating() const override;
@@ -34,6 +37,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Item | Building | GridBuilding | CentralHubBuilding")
 	TSubclassOf<class AOutputPort> OutputPortClass;
+
+	UPROPERTY(EditAnywhere, Category = "Item | Building | GridBuilding | CentralHubBuilding")
+	TSet<TSubclassOf<AItem>> InitialItemClasses;
 
 	UPROPERTY(EditAnywhere, Category = "Item | Building | GridBuilding | CentralHubBuilding")
 	TArray<FIntVector> InputPortGridCoord;

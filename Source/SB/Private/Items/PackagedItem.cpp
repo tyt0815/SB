@@ -9,6 +9,8 @@ void APackagedItem::SetItemData(FItemData Item)
 	ItemData = Item;
 
 	SetLabelTexture(ItemData.Thumbnail);
+
+	bSimulatePhysics = false;
 }
 
 void APackagedItem::BeginPlay()
@@ -17,4 +19,7 @@ void APackagedItem::BeginPlay()
 
 	// TODO:
 	ItemData = MakeItemData();
+
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SkeletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }

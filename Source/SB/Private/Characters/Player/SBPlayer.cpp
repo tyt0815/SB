@@ -111,6 +111,22 @@ void ASBPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		{
 			EnhancedInputComponent->BindAction(NumberInputActions[3], ETriggerEvent::Started, this, &ASBPlayer::Number3Started);
 		}
+		if (NumberInputActions.IsValidIndex(4) && NumberInputActions[4])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[4], ETriggerEvent::Started, this, &ASBPlayer::Number4Started);
+		}
+		if (NumberInputActions.IsValidIndex(5) && NumberInputActions[5])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[5], ETriggerEvent::Started, this, &ASBPlayer::Number5Started);
+		}
+		if (NumberInputActions.IsValidIndex(6) && NumberInputActions[6])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[6], ETriggerEvent::Started, this, &ASBPlayer::Number6Started);
+		}
+		if (NumberInputActions.IsValidIndex(7) && NumberInputActions[7])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[7], ETriggerEvent::Started, this, &ASBPlayer::Number7Started);
+		}
 		if (NumberInputActions.IsValidIndex(0) && NumberInputActions[0])
 		{
 			EnhancedInputComponent->BindAction(NumberInputActions[0], ETriggerEvent::Started, this, &ASBPlayer::Number0Started);
@@ -234,11 +250,11 @@ void ASBPlayer::OpenProductionFacilityInfoWidget(
 	}
 }
 
-void ASBPlayer::OpenHUBOutputPortInfoWidget(UInventoryComponent* HUBStorageComponent, FItemData* OutputItemData)
+void ASBPlayer::OpenHUBOutputPortInfoWidget(UInventoryComponent* HUBStorageComponent, AOutputPort* OutputPort)
 {
 	if (OverlayWidget)
 	{
-		OverlayWidget->OpenHUBOutputPortInfoWidget(HUBStorageComponent, OutputItemData);
+		OverlayWidget->OpenHUBOutputPortInfoWidget(HUBStorageComponent, OutputPort);
 	}
 }
 
@@ -432,10 +448,21 @@ void ASBPlayer::MouseWheelStarted(const FInputActionValue& Value)
 
 void ASBPlayer::RStarted()
 {
-	if (!IsUnarmed() && GetUpperBodyState() == EUpperBodyState::EUBS_Idle)
+	switch (ControllMode)
 	{
-		GetCurrentWeapon()->SpecificUse1();
+	case ECharacterControllMode::ECCM_Combat:
+	{
+		if (!IsUnarmed() && GetUpperBodyState() == EUpperBodyState::EUBS_Idle)
+		{
+			GetCurrentWeapon()->SpecificUse1();
+		}
 	}
+	case ECharacterControllMode::ECCM_Build:
+	{
+		BuildingCreater->RotatePreviewBuildingClockwise90();
+	}
+	}
+	
 }
 
 void ASBPlayer::BStarted()
@@ -490,6 +517,26 @@ void ASBPlayer::Number2Started()
 void ASBPlayer::Number3Started()
 {
 	NumberKeysStarted(3);
+}
+
+void ASBPlayer::Number4Started()
+{
+	NumberKeysStarted(4);
+}
+
+void ASBPlayer::Number5Started()
+{
+	NumberKeysStarted(5);
+}
+
+void ASBPlayer::Number6Started()
+{
+	NumberKeysStarted(6);
+}
+
+void ASBPlayer::Number7Started()
+{
+	NumberKeysStarted(7);
 }
 
 void ASBPlayer::Number0Started()
@@ -840,6 +887,11 @@ void ASBPlayer::SelectInteractionActor()
 	// InteractionTarget 액터까지 이은 벡터의 각도가 가장 작은 액터를 FocusedInteractable로 선정한다.
 
 	AActor* PrevFocusedInteractable = FocusedInteractable;
+	ABuilding* FocusedBuilding = Cast<ABuilding>(PrevFocusedInteractable);
+	if (FocusedBuilding)
+	{
+		FocusedBuilding->SetOutlineDraw(false, 0);
+	}
 	FocusedInteractable = nullptr;
 	FocusedInteractionComponent = nullptr;
 
@@ -880,6 +932,11 @@ void ASBPlayer::SelectInteractionActor()
 	{
 		OverlayWidget->ShowInteractionList(FocusedInteractionComponent);
 		FocusedInteractionOptionIndex = 0;
+	}
+	FocusedBuilding = Cast<ABuilding>(FocusedInteractable);
+	if (FocusedBuilding)
+	{
+		FocusedBuilding->SetOutlineDraw(true, 1);
 	}
 }
 

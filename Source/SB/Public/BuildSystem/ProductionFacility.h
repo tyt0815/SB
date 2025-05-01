@@ -38,6 +38,7 @@ protected:
 
 public:
 	void StartProduction();
+	FItemData* GetRemainedItemData();
 
 protected:
 	virtual void AddInteractions() override;

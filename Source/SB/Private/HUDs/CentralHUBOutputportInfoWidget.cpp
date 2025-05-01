@@ -2,8 +2,8 @@
 #include "HUDs/InventoryWidget.h"
 #include "HUDs/InventorySlotWidget.h"
 
-void UCentralHUBOutputportInfoWidget::Update(UInventoryComponent* HUBStorageComponent, FItemData* OutputData)
+void UCentralHUBOutputportInfoWidget::Update(UInventoryComponent* HUBStorageComponent, AOutputPort* OutputPort)
 {
 	HUBStorageWidget->Update(HUBStorageComponent);
-	OutputDataWidget->SetItemData(OutputData);
+	OutputDataWidget->SetLinkedOutputPort(OutputPort);
 }

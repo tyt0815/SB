@@ -14,6 +14,7 @@ class UInventoryComponent;
 class UProductionFacilityInfoWidget;
 class UCentralHUBOutputportInfoWidget;
 class UCentralHUBInfoWidget;
+class AOutputPort;
 
 UCLASS()
 class SB_API USBWindowWidget : public UUserWidget
@@ -29,10 +30,7 @@ public:
 		UInventoryComponent* InputInventory,
 		UInventoryComponent* OutputInventory
 	);
-	void OpenCentralHUBOutputportInfoWidget(
-		UInventoryComponent* HUBStorageComponent,
-		FItemData* OutputData
-	);
+	void OpenCentralHUBOutputportInfoWidget(UInventoryComponent* HUBStorageComponent, AOutputPort* OutputPort);
 	void OpenCentralHUBInfoWidget(
 		UInventoryComponent* HUBStorageComponent,
 		UInventoryComponent* PlayerInventoryComponent

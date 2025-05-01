@@ -3,7 +3,9 @@
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "Components/InventoryComponent.h"
 #include "Items/ItemData.h"
+#include "BuildSystem/OutputPort.h"
 #include "SB/DebugMacro.h"
 
 void UInventorySlotWidget::Update()
@@ -49,6 +51,7 @@ void UInventorySlotWidget::SetItemData(FItemData* InItemData)
 	if (ItemData)
 	{
 		ItemData->LinkedSlots.AddUnique(this);
+		ItemData->LinkedComponent->UpdateItemWidget(ItemData);
 	}
 	Update();
 }
@@ -57,10 +60,18 @@ void UInventorySlotWidget::CopyItemData(FItemData NewData)
 {
 	if (ItemData)
 	{
-		SCREEN_LOG_NONE_KEY(TEXT("siba2"));
 		*ItemData = NewData;
 		ItemData->LinkedSlots.AddUnique(this);
-		Update();
+		ItemData->LinkedComponent->UpdateItemWidget(ItemData);
+	}
+}
+
+void UInventorySlotWidget::SetLinkedOutputPort(AOutputPort* OutputPort)
+{
+	LinkedOutputPort = OutputPort;
+	if (LinkedOutputPort)
+	{
+		SetItemData(LinkedOutputPort->GetLinkedItemData());
 	}
 }
 
@@ -68,12 +79,22 @@ void UInventorySlotWidget::SwapItemData(UInventorySlotWidget* OtherSlot)
 {
 	if (ItemData && OtherSlot && OtherSlot->GetItemDataPtr())
 	{
-		SCREEN_LOG_NONE_KEY(TEXT("siba"));
 		FItemData A = *ItemData;
-		A.LinkedSlots.Remove(this);
 		FItemData B = *OtherSlot->GetItemDataPtr();
-		B.LinkedSlots.Remove(OtherSlot);
 		CopyItemData(B);
 		OtherSlot->CopyItemData(A);
+	}
+}
+
+void UInventorySlotWidget::LinkItemClass(UInventorySlotWidget* OtherSlot)
+{
+	if (OtherSlot && LinkedOutputPort)
+	{
+		FItemData* OtherItemData = OtherSlot->GetItemDataPtr();
+		if (OtherItemData)
+		{
+			LinkedOutputPort->SetLinkedItemClass(OtherItemData->ItemClass);
+			SetItemData(LinkedOutputPort->GetLinkedItemData());
+		}
 	}
 }

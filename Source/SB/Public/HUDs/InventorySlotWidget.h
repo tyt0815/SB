@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Items/ItemData.h"
 #include "InventorySlotWidget.generated.h"
 
 class UButton;
 class UTextBlock;
 class UImage;
 class UInventoryWidget;
-struct FItemData;
+class AOutputPort;
 
 UCLASS()
 class SB_API UInventorySlotWidget : public UUserWidget
@@ -23,9 +24,13 @@ public:
 	void SetThumnail(UTexture2D* Texture2D);
 	void SetItemData(FItemData* InItemData);
 	void CopyItemData(FItemData NewData);
+	void SetLinkedOutputPort(AOutputPort* OutputPort);
 
 	UFUNCTION(BlueprintCallable, Category = "InventorySlotWidget")
 	void SwapItemData(UInventorySlotWidget* OtherSlot);
+
+	UFUNCTION(BlueprintCallable, Category = "InventorySlotWidget")
+	void LinkItemClass(UInventorySlotWidget* OtherSlot);
 	
 protected:
 
@@ -39,6 +44,7 @@ protected:
 	UImage* Thumbnail;
 
 	FItemData* ItemData = nullptr;
+	AOutputPort* LinkedOutputPort;
 
 	int Index = -1;
 public:

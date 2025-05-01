@@ -49,10 +49,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Item | Building | ConveyorBelt")
 	float MoveDuration = 1.0f;
 	
-	float ElapsedMoveTime = 0.0f;
-
-private:
-
 	AConveyorBelt* Receiver;
 	AConveyorBelt* Supplier;
+	float ElapsedMoveTime = 0.0f;
 };

@@ -16,9 +16,10 @@ class SB_API UInventoryWidget : public UUserWidget
 
 public:
 	void Update(UInventoryComponent* InventoryComponent);
-	void UpdateItemSlotWidget(FItemData* Item, int i);
 
 protected:
+	void AdjustItemSlotsNum(UInventoryComponent* InventoryComponent);
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SBPlayerInventoryWidget")
 	TSubclassOf<UInventorySlotWidget> ItemSlotClass;
 	

@@ -53,12 +53,38 @@ void ABuildCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	{
 		EnhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ABuildCameraPawn::Move);
 		EnhancedInputComponent->BindAction(CapsLockInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::CapsLockStarted);
+		EnhancedInputComponent->BindAction(XInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::XStarted);
 		EnhancedInputComponent->BindAction(MouseLInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::MouseLStarted);
 		EnhancedInputComponent->BindAction(MouseRInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::MouseRStarted);
 		if (NumberInputActions.IsValidIndex(1) && NumberInputActions[1])
 		{
 			EnhancedInputComponent->BindAction(NumberInputActions[1], ETriggerEvent::Started, this, &ABuildCameraPawn::Num1Started);
 		}
+		if (NumberInputActions.IsValidIndex(2) && NumberInputActions[2])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[2], ETriggerEvent::Started, this, &ABuildCameraPawn::Num2Started);
+		}
+		if (NumberInputActions.IsValidIndex(3) && NumberInputActions[3])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[3], ETriggerEvent::Started, this, &ABuildCameraPawn::Num3Started);
+		}
+		if (NumberInputActions.IsValidIndex(4) && NumberInputActions[4])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[4], ETriggerEvent::Started, this, &ABuildCameraPawn::Num4Started);
+		}
+		if (NumberInputActions.IsValidIndex(5) && NumberInputActions[5])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[5], ETriggerEvent::Started, this, &ABuildCameraPawn::Num5Started);
+		}
+		if (NumberInputActions.IsValidIndex(6) && NumberInputActions[6])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[6], ETriggerEvent::Started, this, &ABuildCameraPawn::Num6Started);
+		}
+		if (NumberInputActions.IsValidIndex(7) && NumberInputActions[7])
+		{
+			EnhancedInputComponent->BindAction(NumberInputActions[7], ETriggerEvent::Started, this, &ABuildCameraPawn::Num7Started);
+		}
+
 	}
 }
 
@@ -115,6 +141,15 @@ void ABuildCameraPawn::CapsLockStarted()
 	}
 }
 
+void ABuildCameraPawn::XStarted()
+{
+	if (IsValid(SelectedBuilding))
+	{
+		SelectedBuilding->Destroy();
+		SelectedBuilding = nullptr;
+	}
+}
+
 void ABuildCameraPawn::MouseLStarted()
 {
 	switch (BuildMode)
@@ -160,6 +195,36 @@ void ABuildCameraPawn::EndPlacementMode()
 void ABuildCameraPawn::Num1Started()
 {
 	NumberStarted(1);
+}
+
+void ABuildCameraPawn::Num2Started()
+{
+	NumberStarted(2);
+}
+
+void ABuildCameraPawn::Num3Started()
+{
+	NumberStarted(3);
+}
+
+void ABuildCameraPawn::Num4Started()
+{
+	NumberStarted(4);
+}
+
+void ABuildCameraPawn::Num5Started()
+{
+	NumberStarted(5);
+}
+
+void ABuildCameraPawn::Num6Started()
+{
+	NumberStarted(6);
+}
+
+void ABuildCameraPawn::Num7Started()
+{
+	NumberStarted(7);
 }
 
 void ABuildCameraPawn::SelectBuilding(ABuilding* Building)

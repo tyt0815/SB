@@ -1,10 +1,16 @@
 #include "BuildSystem/OutputPort.h"
+#include "BuildSystem/ProductionFacility.h"
 #include "Items/PackagedItem.h"
 #include "Components/InventoryComponent.h"
 #include "Components/InteractionComponent.h"
 #include "Characters/Player/SBPlayer.h"
 #include "GameInstances/SBGameInstance.h"
 #include "SB/DebugMacro.h"
+
+void AOutputPort::Tick(float Delta)
+{
+	Super::Tick(Delta);
+}
 
 void AOutputPort::BeginPlay()
 {
@@ -23,22 +29,56 @@ void AOutputPort::BeginPlay()
 
 void AOutputPort::TryReceivePackage()
 {
-	UWorld* World = GetWorld();
-	if (ConnectedInventory && Token == 0 && World && ConnectedInventory->IsValidIndex(LinkedItemDataIndex))
+	if (Receiver == nullptr)
 	{
-		FItemData ItemData = ConnectedInventory->RemoveItem(LinkedItemDataIndex, 1);
+		return;
+	}
+	if (!bInteractive)
+	{
+		AProductionFacility* LinkedFacility = Cast<AProductionFacility>(GetOwner());
+		if (LinkedFacility)
+		{
+			LinkedItemClass = LinkedFacility->GetRemainedItemData()->ItemClass;
+		}
+	}
+	UWorld* World = GetWorld();
+	int32 Index = ConnectedInventory->FindItemIndex(LinkedItemClass);
+	if (Token == 0 && World && Index >= 0)
+	{
+		FItemData ItemData = ConnectedInventory->RemoveItem(Index, 1);
 		if (ItemData.Quantity > 0)
 		{
 			USBGameInstance* GameInstance = Cast<USBGameInstance>(World->GetGameInstance());
 			if (GameInstance)
 			{
-				if (ReceivePackage(World->SpawnActor<APackagedItem>(GameInstance->GetPackagedItemClass())))
+				APackagedItem* Package = World->SpawnActor<APackagedItem>(GameInstance->GetPackagedItemClass());
+				if (Package)
 				{
-					Token = 1;
+					Package->SetItemData(ItemData);
+					if (ReceivePackage(Package))
+					{
+						Token = 1;
+					}
 				}
 			}
 		}
 	}
+	
+}
+
+FItemData* AOutputPort::GetLinkedItemData()
+{
+	int32 Index = ConnectedInventory->FindItemIndex(LinkedItemClass);
+	if (Index >= 0)
+	{
+		return ConnectedInventory->GetItemDataPtr(Index);
+	}
+	return nullptr;
+}
+
+void AOutputPort::SetLinkedItemClass(TSubclassOf<AItem> ItemClass)
+{
+	LinkedItemClass = ItemClass;
 }
 
 void AOutputPort::AddInteractions()
@@ -55,11 +95,6 @@ void AOutputPort::ShowInfo(AActor* Actor)
 	ASBPlayer* Player = Cast<ASBPlayer>(Actor);
 	if (Player)
 	{
-		FItemData* ItemData = nullptr;
-		if (ConnectedInventory->IsValidIndex(LinkedItemDataIndex))
-		{
-			ItemData = ConnectedInventory->GetItemDataPtr(LinkedItemDataIndex);
-		}
-		Player->OpenHUBOutputPortInfoWidget(ConnectedInventory, ItemData);
+		Player->OpenHUBOutputPortInfoWidget(ConnectedInventory, this);
 	}
 }

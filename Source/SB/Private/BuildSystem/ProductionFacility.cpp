@@ -119,15 +119,16 @@ void AProductionFacility::StartProduction()
 			{
 				OutputData = Temp->MakeItemData();
 				Temp->Destroy();
+				bProducted = true;
+				ProductionTimeLeft = Recipe.ProductionTime;
 			}
-			
-
-			
-			bProducted = true;
-			ProductionTimeLeft = Recipe.ProductionTime;
-			return;
 		}
 	}
+}
+
+FItemData* AProductionFacility::GetRemainedItemData()
+{
+	return ProductionOutputs->GetItemDataPtr(0);
 }
 
 void AProductionFacility::AddInteractions()

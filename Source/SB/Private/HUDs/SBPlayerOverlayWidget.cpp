@@ -23,9 +23,9 @@ void USBPlayerOverlayWidget::OpenProductionFacilityInfoWidget(
 	WindowWidget->OpenProductionFacilityInfoWidget(PlayerInventoryComponent, InputInventoryComponent, OutputInventoryComponent);
 }
 
-void USBPlayerOverlayWidget::OpenHUBOutputPortInfoWidget(UInventoryComponent* HUBStorageComponent, FItemData* OutputData)
+void USBPlayerOverlayWidget::OpenHUBOutputPortInfoWidget(UInventoryComponent* HUBStorageComponent, AOutputPort* OutputPort)
 {
-	WindowWidget->OpenCentralHUBOutputportInfoWidget(HUBStorageComponent, OutputData);
+	WindowWidget->OpenCentralHUBOutputportInfoWidget(HUBStorageComponent, OutputPort);
 }
 
 void USBPlayerOverlayWidget::OpenHUBInfoWidget(UInventoryComponent* HUBStorageComponent, UInventoryComponent* PlayerInventoryComponent)

@@ -29,7 +29,6 @@ void ABuilding::Tick(float DeltaTime)
 void ABuilding::BeginPlay()
 {
 	Super::BeginPlay();
-	SnapLocationXY(GetActorLocation());
 }
 
 void ABuilding::IncreasePowerConsumption(uint16 Power)
@@ -294,6 +293,16 @@ void ABuilding::SetAsPreview()
 	StaticMesh->SetSimulatePhysics(false);
 	SkeletalMesh->SetSimulatePhysics(false);
 	SetActorRelativeLocation(FVector(0.0f, 0.0f, GetZOffset()));
+	TArray<AActor*> ChildActors;
+	GetAllChildActors(ChildActors, true);
+	for (AActor* Child : ChildActors)
+	{
+		ABuilding* Building = Cast<ABuilding>(Child);
+		if (Building)
+		{
+			Building->SetAsPreview();
+		}
+	}
 	bPreview = true;
 }
 
@@ -357,6 +366,11 @@ bool ABuilding::HasSufficientPower() const
 	}
 }
 
+void ABuilding::RotateClockwise90()
+{
+	AddActorWorldRotation(FRotator(0.0f, 90.0f, 0.0f));
+}
+
 void ABuilding::SnapLocationXY(FVector WorldLocation)
 {
 	SetActorLocation(BuildSystem::SnapLocationXY(WorldLocation));
@@ -370,6 +384,12 @@ void ABuilding::BeginDestroy()
 {
 	TryDisconnectToBuilding();
 	Super::BeginDestroy();
+}
+
+void ABuilding::AddToInventory(AActor* OtherActor)
+{
+	TryDisconnectToBuilding();
+	Super::AddToInventory(OtherActor);
 }
 
 void ABuilding::TraceBuilding(FVector Start, FVector End, FHitResult& HitResult)

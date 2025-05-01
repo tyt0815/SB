@@ -25,7 +25,10 @@ protected:
 public:
 	void SetInventoryItemInfo(const FItemData& Item, int i);
 	void SetInventorySize(const int32& Size);
-	void UpdateItemWidget(int i);
+	void UpdateItemWidgetAt(int i);
+	void UpdateItemWidget(FItemData* Target);
+	int32 FindItemIndex(TSubclassOf<AItem> ItemClass);
+	int32 FindEmptySlotIndex();
 	bool AddItem(const FItemData& Item);
 	bool AddItem(AItem* Item);
 	bool AddItem(APackagedItem* PackagedItem);
@@ -39,7 +42,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = Inventory)
 	int InventorySize = 50;
 
-	UInventoryWidget* InventoryWidget;
 	TArray<FItemData> Inventory;
 
 public:
@@ -58,10 +60,6 @@ public:
 	FORCEINLINE FItemData* GetItemDataPtr(int32 i)
 	{
 		return &Inventory[i];
-	}
-	FORCEINLINE void SetInventoryWidget(UInventoryWidget* Widget)
-	{
-		InventoryWidget = Widget;
 	}
 	FORCEINLINE bool IsValidIndex(int32 Index) const
 	{

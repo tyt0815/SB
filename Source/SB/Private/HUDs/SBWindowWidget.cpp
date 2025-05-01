@@ -31,10 +31,10 @@ void USBWindowWidget::OpenProductionFacilityInfoWidget(
 	ProductionFacilityInfoWidget->Update(PlayerInventory, InputInventory, OutputInventory);
 }
 
-void USBWindowWidget::OpenCentralHUBOutputportInfoWidget(UInventoryComponent* HUBStorageComponent, FItemData* OutputData)
+void USBWindowWidget::OpenCentralHUBOutputportInfoWidget(UInventoryComponent* HUBStorageComponent, AOutputPort* OutputPort)
 {
 	Open(CentralHUBOutputPortInfoWidget);
-	CentralHUBOutputPortInfoWidget->Update(HUBStorageComponent, OutputData);
+	CentralHUBOutputPortInfoWidget->Update(HUBStorageComponent, OutputPort);
 }
 
 void USBWindowWidget::OpenCentralHUBInfoWidget(

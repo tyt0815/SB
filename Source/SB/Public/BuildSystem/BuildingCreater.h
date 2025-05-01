@@ -25,6 +25,7 @@ public:
 	void HiddenInGame(bool bNew);
 	void SnapLocation(FVector WorldLocation);
 	void CancelPreview();
+	void RotatePreviewBuildingClockwise90();
 	FVector GetCellLocation(int i, int j);
 
 	UFUNCTION(BlueprintCallable)

@@ -25,29 +25,42 @@ void UInventoryComponent::SetInventoryItemInfo(const FItemData& Item, int i)
 {
 	if (Inventory.IsValidIndex(i))
 	{
+		auto a = Inventory[i].LinkedSlots;
 		Inventory[i] = Item;
-		UpdateItemWidget(i);
+		Inventory[i].LinkedSlots = a;
+		UpdateItemWidgetAt(i);
 	}
 }
 
 void UInventoryComponent::SetInventorySize(const int32& Size)
 {
-	InventorySize = Size;
+	InventorySize = FMath::Max(1, Size);
 	Inventory.SetNum(InventorySize);
+	for (auto& Item : Inventory)
+	{
+		Item.LinkedComponent = this;
+	}
 }
 
-void UInventoryComponent::UpdateItemWidget(int i)
+void UInventoryComponent::UpdateItemWidgetAt(int i)
 {
-	if (Inventory.IsValidIndex(i) && InventoryWidget)
+	if (Inventory.IsValidIndex(i))
 	{
-		Inventory[i].LinkedSlots.Remove(nullptr);
+		UpdateItemWidget(&Inventory[i]);
+	}
+}
+
+void UInventoryComponent::UpdateItemWidget(FItemData* Target)
+{
+	if (Target)
+	{
+		Target->LinkedSlots.Remove(nullptr);
 		TArray<UInventorySlotWidget*> InvalidSlots;
-		for (UInventorySlotWidget* SlotWidget : Inventory[i].LinkedSlots)
+		for (UInventorySlotWidget* SlotWidget : Target->LinkedSlots)
 		{
-			if (SlotWidget->GetItemDataPtr() == &Inventory[i])
+			if (IsValid(SlotWidget) && SlotWidget->GetItemDataPtr() == Target)
 			{
 				SlotWidget->Update();
-			
 			}
 			else
 			{
@@ -56,50 +69,60 @@ void UInventoryComponent::UpdateItemWidget(int i)
 		}
 		for (UInventorySlotWidget* InvalidSlot : InvalidSlots)
 		{
-			Inventory[i].LinkedSlots.Remove(InvalidSlot);
+			Target->LinkedSlots.Remove(InvalidSlot);
 		}
 	}
+	
+}
+
+int32 UInventoryComponent::FindItemIndex(TSubclassOf<AItem> ItemClass)
+{
+	for (int32 i = 0; i < InventorySize; ++i)
+	{
+		if (Inventory[i].Quantity > 0 && Inventory[i].ItemClass == ItemClass)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+int32 UInventoryComponent::FindEmptySlotIndex()
+{
+	for (int32 i = 0; i < InventorySize; ++i)
+	{
+		if (Inventory[i].Quantity == 0)
+		{
+			return i;
+		}
+	}
+	return -1;
 }
 
 bool UInventoryComponent::AddItem(const FItemData& Item)
 {
 	if (Item.Quantity > 0 && Item.ItemClass)
 	{
-		TSubclassOf<AItem> ItemClass = Item.ItemClass;
-		int SlotIndex = -1;
-		for (int i = 0; i < InventorySize; ++i)
+		int32 Index = FindItemIndex(Item.ItemClass);
+		if (Index < 0)
 		{
-			if (Inventory[i].Quantity == 0)
+			Index = FindEmptySlotIndex();
+			if (Index < 0)
 			{
-				if (SlotIndex < 0)
-				{
-					SlotIndex = i;
-				}
+				return false;
 			}
-			else if (Inventory[i].ItemClass == ItemClass && Inventory[i].bStackable)
+			else
 			{
-				SlotIndex = i;
-				break;
+				SetInventoryItemInfo(Item, Index);
 			}
 		}
-
-		if (SlotIndex >= 0)
-		{
-			FItemData& InventoryItem = Inventory[SlotIndex];
-			if (InventoryItem.Quantity < 1)
-			{
-				SetInventoryItemInfo(Item, SlotIndex);
-				return true;
-			}
-			else if (InventoryItem.bStackable)
-			{
-				InventoryItem.Quantity += Item.Quantity;
-				UpdateItemWidget(SlotIndex);
-				return true;
-			}
+		else
+		{	
+			Inventory[Index].Quantity += Item.Quantity;
+			UpdateItemWidgetAt(Index);
 		}
 	}
-	return false;
+	return true;
 }
 
 bool UInventoryComponent::AddItem(AItem* Item)
@@ -139,7 +162,7 @@ FItemData UInventoryComponent::RemoveItem(int Index, int Quantity)
 		if (Item.Quantity > 0)
 		{
 			Inventory[Index].Quantity -= Quantity;
-			UpdateItemWidget(Index);
+			UpdateItemWidgetAt(Index);
 		}
 	}
 	return Item;

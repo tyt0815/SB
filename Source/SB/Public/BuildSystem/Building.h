@@ -57,9 +57,12 @@ public:
 	virtual void SetAsPreview();
 	void SetAllMaterials(UMaterialInterface* Material);
 	void SetPowerState(bool bOn);
+	// 외곽선을 그린다. 색상은 PP_HightlightMaterial_Inst 의 색상을 참고.
+	void SetOutlineDraw(bool bDraw, int Color);
 	virtual bool IsOperating() const;
 	bool IsPowerOn() const;
 	bool HasSufficientPower() const;
+	void RotateClockwise90();
 
 	UFUNCTION(BlueprintCallable, Category = "Building")
 	void SnapLocationXY(FVector WorldLocation);
@@ -67,6 +70,7 @@ public:
 protected:
 	virtual void InitMeshsVisibilityAndPhysics() override;
 	virtual void BeginDestroy() override;
+	virtual void AddToInventory(AActor* OtherActor) override;
 	void TraceBuilding(FVector Start, FVector End, FHitResult& HitResult);
 	void TraceBuildings(FVector Start, FVector End, TArray<FHitResult>& HitResults);
 
@@ -89,8 +93,7 @@ protected:
 
 	bool bPowerOn = true;
 private:
-	// 외곽선을 그린다. 색상은 PP_HightlightMaterial_Inst 의 색상을 참고.
-	void SetOutlineDraw(bool bDraw, int Color);
+	
 	void SetRenderCustomDepthStencil(bool bRender, int Stencil);
 
 	bool bPreview = false;
@@ -114,6 +117,6 @@ public:
 	}
 	FORCEINLINE bool IsConnectedToParentBuilding() const
 	{
-		return ParentBuilding != nullptr;
+		return IsValid(ParentBuilding);
 	}
 };

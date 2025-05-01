@@ -1,6 +1,12 @@
 #include "BuildSystem/FacilityPort.h"
 #include "Components/InventoryComponent.h"
+#include "Components/BoxComponent.h"
 #include "SB/DebugMacro.h"
+
+AFacilityPort::AFacilityPort()
+{
+	BuildBlocker->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
 
 void AFacilityPort::Tick(float Delta)
 {
@@ -15,6 +21,7 @@ void AFacilityPort::BeginPlay()
 	Super::BeginPlay();
 
 	SetOwner(GetAttachParentActor());
+	BuildBlocker->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AFacilityPort::UpdateToken()

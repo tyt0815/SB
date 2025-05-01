@@ -7,32 +7,33 @@
 
 void UInventoryWidget::Update(UInventoryComponent* InventoryComponent)
 {
-	UWorld* World = GetWorld();
-	if (World && InventoryComponent && ItemSlotClass)
+	AdjustItemSlotsNum(InventoryComponent);
+	
+	int32 ItemSlotsNum = FMath::Min(ItemSlots.Num(), InventoryComponent->GetInventorySize());
+	for (int32 i = 0; i < ItemSlotsNum; ++i)
 	{
-		InventoryComponent->SetInventoryWidget(this);
+		ItemSlots[i]->SetItemData(InventoryComponent->GetItemDataPtr(i));
+	}
+}
+
+void UInventoryWidget::AdjustItemSlotsNum(UInventoryComponent* InventoryComponent)
+{
+	UWorld* World = GetWorld();
+	if (World && InventoryComponent)
+	{
+		int32 InventorySize = InventoryComponent->GetInventorySize();
 		APlayerController* Controller = World->GetFirstPlayerController();
 		if (Controller)
 		{
-			int32 InventorySize = InventoryComponent->GetInventorySize();
-			for (int i = ItemSlots.Num(); i < InventorySize; ++i)
+			for (int32 i = ItemSlots.Num(); i < InventorySize; ++i)
 			{
 				ItemSlots.Add(CreateWidget<UInventorySlotWidget>(Controller, ItemSlotClass));
 				if (ItemSlots[i])
 				{
 					WrapBox->AddChild(ItemSlots[i]);
 					ItemSlots[i]->SetIndex(i);
-					UpdateItemSlotWidget(InventoryComponent->GetItemDataPtr(i), i);
 				}
 			}
 		}
-	}
-}
-
-void UInventoryWidget::UpdateItemSlotWidget(FItemData* Item, int i)
-{
-	if (ItemSlots.IsValidIndex(i) && ItemSlots[i])
-	{
-		ItemSlots[i]->SetItemData(Item);
 	}
 }

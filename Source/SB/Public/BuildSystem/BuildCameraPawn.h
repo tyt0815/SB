@@ -49,10 +49,17 @@ public:
 protected:
 	void Move(const FInputActionValue& Value);
 	void CapsLockStarted();
+	void XStarted();
 	void MouseLStarted();
 	void MouseRStarted();
 	void EndPlacementMode();
 	void Num1Started();
+	void Num2Started();
+	void Num3Started();
+	void Num4Started();
+	void Num5Started();
+	void Num6Started();
+	void Num7Started();
 	void SelectBuilding(ABuilding* Building);
 	void DeselectBuilding();
 	void SetInputMappingContext();
@@ -68,7 +75,10 @@ protected:
 	UInputAction* MoveInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
-	UInputAction* CapsLockInputAction;
+	UInputAction* CapsLockInputAction;	
+	
+	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UInputAction* XInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
 	UInputAction* MouseLInputAction;

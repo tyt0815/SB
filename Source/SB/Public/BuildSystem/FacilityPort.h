@@ -12,6 +12,7 @@ class SB_API AFacilityPort : public AConveyorBelt
 	GENERATED_BODY()
 
 public:
+	AFacilityPort();
 	virtual void Tick(float Delta) override;
 
 protected:
