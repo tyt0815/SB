@@ -34,7 +34,7 @@ public:
 	void IncreasePowerConsumption(uint16 Power);
 	void DecreasePowerConsumption(uint16 Power);
 	virtual void PropagatePowerState();
-	virtual void Place(FVector WorldLocation);
+	virtual void Place(FVector WorldLocation, FRotator WorldRotation);
 	virtual void TryConnectToNearByFacility();
 	void TraceGridBuilding(TArray<FHitResult>& HitResults);
 	virtual void OnConstruction(const FTransform& Transform) override;

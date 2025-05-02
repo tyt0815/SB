@@ -54,6 +54,7 @@ void ABuildCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ABuildCameraPawn::Move);
 		EnhancedInputComponent->BindAction(CapsLockInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::CapsLockStarted);
 		EnhancedInputComponent->BindAction(XInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::XStarted);
+		EnhancedInputComponent->BindAction(RInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::RStarted);
 		EnhancedInputComponent->BindAction(MouseLInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::MouseLStarted);
 		EnhancedInputComponent->BindAction(MouseRInputAction, ETriggerEvent::Started, this, &ABuildCameraPawn::MouseRStarted);
 		if (NumberInputActions.IsValidIndex(1) && NumberInputActions[1])
@@ -147,6 +148,14 @@ void ABuildCameraPawn::XStarted()
 	{
 		SelectedBuilding->Destroy();
 		SelectedBuilding = nullptr;
+	}
+}
+
+void ABuildCameraPawn::RStarted()
+{
+	if (BuildingCreater)
+	{
+		BuildingCreater->RotatePreviewBuildingClockwise90();
 	}
 }
 
@@ -270,6 +279,7 @@ void ABuildCameraPawn::TraceUnderMouseCursor()
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 	ActorsToIgnore.Add(PlayerCharacter);
+	ActorsToIgnore.Add(BuildingCreater);
 	UKismetSystemLibrary::LineTraceSingle(
 		this,
 		MouseWorldPosition,

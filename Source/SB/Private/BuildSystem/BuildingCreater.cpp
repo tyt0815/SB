@@ -70,8 +70,9 @@ void ABuildingCreater::CreateBuilding()
 			if (Building)
 			{
 				FVector Location = PreviewBuilding->GetActorLocation();
+				FRotator Rotation = PreviewBuilding->GetActorRotation();
 				CancelPreview();
-				Building->Place(Location);
+				Building->Place(Location, Rotation);
 			}
 		}
 	}
@@ -229,13 +230,17 @@ void ABuildingCreater::SetPreviewBuildingMaterial(UMaterialInterface* Material)
 void ABuildingCreater::UpdateBuildableStateAndSetPreviewBuildingMaterial()
 {
 	UpdateBuildableState();
-	if (bBuildable)
+	if (PreviewBuilding)
 	{
-		SetPreviewBuildingMaterial(ValidPreviewMaterial);
+		if (bBuildable)
+		{
+			//SetPreviewBuildingMaterial(ValidPreviewMaterial);
+			PreviewBuilding->SetOutlineDraw(true, 1);
+		}
+		else
+		{
+			//SetPreviewBuildingMaterial(InvalidPreviewMaterial);
+			PreviewBuilding->SetOutlineDraw(true, 2);
+		}
 	}
-	else
-	{
-		SetPreviewBuildingMaterial(InvalidPreviewMaterial);
-	}
-	
 }

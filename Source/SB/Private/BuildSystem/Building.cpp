@@ -53,9 +53,10 @@ void ABuilding::PropagatePowerState()
 {
 }
 
-void ABuilding::Place(FVector WorldLocation)
+void ABuilding::Place(FVector WorldLocation, FRotator WorldRotation)
 {
 	SnapLocationXY(WorldLocation);
+	SetActorRotation(WorldRotation);
 	TryConnectToNearByFacility();
 }
 
@@ -112,7 +113,7 @@ void ABuilding::TraceGridBuilding(TArray<FHitResult>& HitResults)
 		ObjectTypes,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
+		EDrawDebugTrace::None,
 		HitResults,
 		true
 	);

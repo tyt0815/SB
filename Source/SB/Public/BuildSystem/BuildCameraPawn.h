@@ -50,6 +50,7 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void CapsLockStarted();
 	void XStarted();
+	void RStarted();
 	void MouseLStarted();
 	void MouseRStarted();
 	void EndPlacementMode();
@@ -79,6 +80,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
 	UInputAction* XInputAction;
+
+	UPROPERTY(EditAnywhere, Category = EnhancedInput)
+	UInputAction* RInputAction;
 
 	UPROPERTY(EditAnywhere, Category = EnhancedInput)
 	UInputAction* MouseLInputAction;
