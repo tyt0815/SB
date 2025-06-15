@@ -1,0 +1,39 @@
+#include "HUDs/InventoryWidget.h"
+#include "Components/InventoryComponent.h"
+#include "Components/WrapBox.h"
+#include "Components/Button.h"
+#include "HUDs/InventorySlotWidget.h"
+#include "SB/DebugMacro.h"
+
+void UInventoryWidget::Update(UInventoryComponent* InventoryComponent)
+{
+	AdjustItemSlotsNum(InventoryComponent);
+	
+	int32 ItemSlotsNum = ItemSlots.Num();
+	for (int32 i = 0; i < ItemSlotsNum; ++i)
+	{
+		ItemSlots[i]->SetItemData(InventoryComponent->GetItemDataPtr(i));
+	}
+}
+
+void UInventoryWidget::AdjustItemSlotsNum(UInventoryComponent* InventoryComponent)
+{
+	UWorld* World = GetWorld();
+	if (World && InventoryComponent)
+	{
+		int32 InventorySize = InventoryComponent->GetInventorySize();
+		APlayerController* Controller = World->GetFirstPlayerController();
+		if (Controller)
+		{
+			for (int32 i = ItemSlots.Num(); i < InventorySize; ++i)
+			{
+				ItemSlots.Add(CreateWidget<UInventorySlotWidget>(Controller, ItemSlotClass));
+				if (ItemSlots[i])
+				{
+					WrapBox->AddChild(ItemSlots[i]);
+					ItemSlots[i]->SetIndex(i);
+				}
+			}
+		}
+	}
+}
